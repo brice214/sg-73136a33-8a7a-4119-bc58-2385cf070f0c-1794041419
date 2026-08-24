@@ -1,25 +1,26 @@
 ---
 title: Module Citoyens (Super Admin)
-status: todo
+status: done
 priority: low
 type: feature
-tags: [super-admin]
+tags: [super-admin, users]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 12
+created_at: 2026-08-24T16:58:00Z
+position: 11
 ---
 
 ## Notes
-Liste lecture seule profiles/auth.users. Affiche email, nom, date inscription, dernière activité. Export CSV optionnel.
+Super Admin liste tous les utilisateurs de l'app mobile (table profiles). Lecture seule avec actions: bloquer (empêche connexion) et supprimer compte. Schéma: id, email, full_name, created_at, last_sign_in_at.
 
 ## Checklist
-- [ ] Page /admin/citoyens avec tableau lecture seule
-- [ ] Colonnes: email, full_name, created_at, updated_at
+- [ ] Page /admin/citoyens avec tableau profiles
+- [ ] Colonnes: email, nom, inscription, dernière connexion
 - [ ] Recherche par email/nom
-- [ ] Export CSV (optionnel futur)
-- [ ] Pas de modification (lecture seule)
+- [ ] Bloquer utilisateur (via Supabase Auth Admin)
+- [ ] Supprimer compte (via Supabase Auth Admin)
+- [ ] Confirmation avant suppression
 
 ## Acceptance
 - Liste affiche tous citoyens (non-admin)
 - Recherche fonctionne
-- Aucune action CRUD disponible
+- Blocage/suppression fonctionnent via service_role côté serveur
