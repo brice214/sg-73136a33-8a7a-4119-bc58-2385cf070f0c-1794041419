@@ -29,9 +29,13 @@ export default function ComptePage() {
     if (!session?.user?.id) return;
 
     try {
+      // Email vient de session.user
+      setEmail(session.user.email || "");
+
+      // full_name vient de admin_users
       const { data: adminUser, error } = await supabase
         .from("admin_users")
-        .select("full_name, email")
+        .select("full_name")
         .eq("id", session.user.id)
         .single();
 
@@ -39,7 +43,6 @@ export default function ComptePage() {
 
       if (adminUser) {
         setFullName(adminUser.full_name || "");
-        setEmail(adminUser.email || "");
       }
     } catch (error: any) {
       toast({
