@@ -1,25 +1,24 @@
 ---
 title: Module Notifications (Super Admin)
-status: todo
+status: done
 priority: medium
 type: feature
-tags: [super-admin]
+tags: [super-admin, notifications]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 10
+created_at: 2026-08-24T16:56:00Z
+position: 9
 ---
 
 ## Notes
-Envoi annonces push (insert notifications). Historique envois. Structure prête FCM (envoi réel dans futur sprint mobile).
+Super Admin envoie des annonces push. Table notifications: title, message, sent_at, sent_by. Interface indique que FCM est à venir (futur mobile). Historique des annonces envoyées.
 
 ## Checklist
-- [ ] Page /admin/notifications avec formulaire + historique
-- [ ] Formulaire envoi (title, body, prévisualisation)
-- [ ] Insert notifications avec sent_by=uid()
-- [ ] Tableau historique (date, titre, corps)
-- [ ] Note UI: "Envoi push FCM sera activé prochainement"
+- [ ] Page /admin/notifications avec formulaire envoi
+- [ ] Formulaire: title, message, envoi → insert notifications
+- [ ] Historique: tableau notifications avec tri sent_at desc
+- [ ] Note visible: FCM à venir (actuellement DB uniquement)
 
 ## Acceptance
-- Insert notifications fonctionne
+- Envoi annonce fonctionne
 - Historique affiche toutes annonces envoyées
 - Interface claire que FCM est à venir
