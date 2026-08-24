@@ -1,6 +1,6 @@
 ---
 title: Module Administrateurs (Super Admin)
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [super-admin, crud]
