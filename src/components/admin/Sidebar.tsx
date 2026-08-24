@@ -95,7 +95,7 @@ const navItems: NavItem[] = [
   // AGASA
   {
     label: "Mes actualités",
-    href: "/admin/actualites",
+    href: "/admin/actualites-agasa",
     icon: Newspaper,
     roles: ["agasa"],
   },
