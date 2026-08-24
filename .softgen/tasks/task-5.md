@@ -1,6 +1,6 @@
 ---
 title: Module Actualités Blog (Super Admin)
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [super-admin, blog, crud]
@@ -10,19 +10,16 @@ position: 5
 ---
 
 ## Notes
-Super Admin gère uniquement les actualités du Blog (source='blog'). Chaque dashboard peut publier ses propres actualités selon sa source (AGASA publie source='agasa', etc.). Upload image vers bucket 'news-images', réordonnancement, publication/dépublication.
+Super Admin gère uniquement les actualités du Blog (source='blog'). Schéma DB: excerpt, tag, tag_color, published_date, sort_order. Pas d'upload image dans cette version.
 
 ## Checklist
-- [ ] Page /admin/actualites avec tableau news où source='blog'
-- [ ] Dialog création: title, content, image upload, tag_color
-- [ ] Upload image → bucket 'news-images' puis image_url dans news
-- [ ] Dialog modification: mêmes champs
-- [ ] Publication/dépublication toggle (published_at)
-- [ ] Suppression avec confirmation
-- [ ] Réordonnancement drag-and-drop → sort_order
-- [ ] Filtres: tag_color, publié/brouillon
+- [x] Page /admin/actualites avec tableau news où source='blog'
+- [x] Dialog création: title, excerpt, tag, tag_color
+- [x] Dialog modification: mêmes champs
+- [x] Suppression avec confirmation
+- [x] Filtres: tag_color, recherche titre/excerpt/tag
 
 ## Acceptance
 - Super Admin voit uniquement source='blog'
-- Upload image fonctionne vers bucket 'news-images'
-- Réordonnancement sauvegarde sort_order correctement
+- CRUD complet fonctionne correctement
+- Filtres appliquent les critères

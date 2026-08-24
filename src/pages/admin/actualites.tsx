@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Eye, EyeOff, Upload, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,18 +34,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Image from "next/image";
 
 type NewsArticle = {
-  id: string;
+  id: number;
   title: string;
-  content: string;
-  image_url: string | null;
+  excerpt: string;
+  tag: string;
+  tag_color: string;
   source: string;
-  tag_color: string | null;
-  published_at: string | null;
+  published_date: string;
   sort_order: number;
-  created_at: string;
 };
 
 const TAG_COLORS = [
@@ -63,7 +61,6 @@ export default function ActualitesPage() {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterPublished, setFilterPublished] = useState<string>("all");
   const [filterTagColor, setFilterTagColor] = useState<string>("all");
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -73,12 +70,11 @@ export default function ActualitesPage() {
 
   const [formData, setFormData] = useState({
     title: "",
-    content: "",
+    excerpt: "",
+    tag: "",
     tag_color: "",
-    imageFile: null as File | null,
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadArticles();
@@ -106,65 +102,28 @@ export default function ActualitesPage() {
     }
   }
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Fichier doit être une image",
-      });
-      return;
-    }
-
-    setFormData({ ...formData, imageFile: file });
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-  }
-
-  async function uploadImage(): Promise<string | null> {
-    if (!formData.imageFile) return null;
-
-    const fileName = `${Date.now()}_${formData.imageFile.name}`;
-    const { data, error } = await supabase.storage
-      .from("news-images")
-      .upload(fileName, formData.imageFile);
-
-    if (error) throw error;
-
-    const { data: urlData } = supabase.storage
-      .from("news-images")
-      .getPublicUrl(data.path);
-
-    return urlData.publicUrl;
-  }
-
   async function handleCreate() {
-    if (!formData.title.trim() || !formData.content.trim()) {
+    if (!formData.title.trim() || !formData.excerpt.trim() || !formData.tag.trim()) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Titre et contenu requis",
+        description: "Titre, résumé et tag requis",
       });
       return;
     }
 
     try {
-      setUploading(true);
-      const imageUrl = await uploadImage();
-
+      setSubmitting(true);
       const maxSortOrder = articles.reduce((max, a) => Math.max(max, a.sort_order), 0);
 
       const { error } = await supabase.from("news").insert({
         title: formData.title,
-        content: formData.content,
-        image_url: imageUrl,
+        excerpt: formData.excerpt,
+        tag: formData.tag,
+        tag_color: formData.tag_color || "blue",
         source: "blog",
-        tag_color: formData.tag_color || null,
         sort_order: maxSortOrder + 1,
+        published_date: new Date().toISOString(),
       });
 
       if (error) throw error;
@@ -180,35 +139,30 @@ export default function ActualitesPage() {
         description: error.message,
       });
     } finally {
-      setUploading(false);
+      setSubmitting(false);
     }
   }
 
   async function handleUpdate() {
-    if (!selectedArticle || !formData.title.trim() || !formData.content.trim()) {
+    if (!selectedArticle || !formData.title.trim() || !formData.excerpt.trim() || !formData.tag.trim()) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Titre et contenu requis",
+        description: "Titre, résumé et tag requis",
       });
       return;
     }
 
     try {
-      setUploading(true);
-      let imageUrl = selectedArticle.image_url;
-
-      if (formData.imageFile) {
-        imageUrl = await uploadImage();
-      }
+      setSubmitting(true);
 
       const { error } = await supabase
         .from("news")
         .update({
           title: formData.title,
-          content: formData.content,
-          image_url: imageUrl,
-          tag_color: formData.tag_color || null,
+          excerpt: formData.excerpt,
+          tag: formData.tag,
+          tag_color: formData.tag_color || "blue",
         })
         .eq("id", selectedArticle.id);
 
@@ -225,7 +179,7 @@ export default function ActualitesPage() {
         description: error.message,
       });
     } finally {
-      setUploading(false);
+      setSubmitting(false);
     }
   }
 
@@ -253,30 +207,6 @@ export default function ActualitesPage() {
     }
   }
 
-  async function togglePublish(article: NewsArticle) {
-    try {
-      const newPublishedAt = article.published_at ? null : new Date().toISOString();
-
-      const { error } = await supabase
-        .from("news")
-        .update({ published_at: newPublishedAt })
-        .eq("id", article.id);
-
-      if (error) throw error;
-
-      toast({
-        title: newPublishedAt ? "Article publié" : "Article mis en brouillon",
-      });
-      loadArticles();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message,
-      });
-    }
-  }
-
   function openCreateDialog() {
     resetForm();
     setCreateDialogOpen(true);
@@ -286,11 +216,10 @@ export default function ActualitesPage() {
     setSelectedArticle(article);
     setFormData({
       title: article.title,
-      content: article.content,
-      tag_color: article.tag_color || "",
-      imageFile: null,
+      excerpt: article.excerpt,
+      tag: article.tag,
+      tag_color: article.tag_color,
     });
-    setImagePreview(article.image_url);
     setEditDialogOpen(true);
   }
 
@@ -302,28 +231,23 @@ export default function ActualitesPage() {
   function resetForm() {
     setFormData({
       title: "",
-      content: "",
+      excerpt: "",
+      tag: "",
       tag_color: "",
-      imageFile: null,
     });
-    setImagePreview(null);
     setSelectedArticle(null);
   }
 
   const filteredArticles = articles.filter((article) => {
     const matchSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.content.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchPublished =
-      filterPublished === "all" ||
-      (filterPublished === "published" && article.published_at) ||
-      (filterPublished === "draft" && !article.published_at);
+      article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      article.tag.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchTag =
       filterTagColor === "all" || article.tag_color === filterTagColor;
 
-    return matchSearch && matchPublished && matchTag;
+    return matchSearch && matchTag;
   });
 
   if (session?.user.role !== "super_admin") {
@@ -359,31 +283,18 @@ export default function ActualitesPage() {
             <CardTitle>Filtres</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Recherche</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Titre ou contenu..."
+                    placeholder="Titre, résumé ou tag..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
                   />
                 </div>
-              </div>
-              <div>
-                <Label>Statut</Label>
-                <Select value={filterPublished} onValueChange={setFilterPublished}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="published">Publiés</SelectItem>
-                    <SelectItem value="draft">Brouillons</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div>
                 <Label>Tag couleur</Label>
@@ -418,62 +329,36 @@ export default function ActualitesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredArticles.map((article) => (
-              <Card key={article.id} className="overflow-hidden">
-                {article.image_url && (
-                  <div className="relative h-48 w-full bg-muted">
-                    <Image
-                      src={article.image_url}
-                      alt={article.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
+              <Card key={article.id}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold line-clamp-2">{article.title}</h3>
-                    {article.tag_color && (
-                      <Badge
-                        variant="outline"
-                        className={`shrink-0 bg-${article.tag_color}-100 text-${article.tag_color}-800 border-${article.tag_color}-300`}
-                      >
-                        {TAG_COLORS.find((c) => c.value === article.tag_color)?.label}
-                      </Badge>
-                    )}
+                    <Badge
+                      variant="outline"
+                      style={{
+                        backgroundColor: `${article.tag_color}20`,
+                        borderColor: article.tag_color,
+                        color: article.tag_color,
+                      }}
+                      className="shrink-0"
+                    >
+                      {article.tag}
+                    </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {article.content}
+                    {article.excerpt}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {article.published_at ? (
-                      <Badge variant="default" className="gap-1">
-                        <Eye className="w-3 h-3" />
-                        Publié
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="gap-1">
-                        <EyeOff className="w-3 h-3" />
-                        Brouillon
-                      </Badge>
-                    )}
-                    <span>•</span>
                     <span>
-                      {new Date(article.created_at).toLocaleDateString("fr-FR")}
+                      {new Date(article.published_date).toLocaleDateString("fr-FR")}
                     </span>
                   </div>
                   <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => togglePublish(article)}
-                      className="flex-1"
-                    >
-                      {article.published_at ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
                       onClick={() => openEditDialog(article)}
+                      className="flex-1"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -493,7 +378,7 @@ export default function ActualitesPage() {
 
         {/* Dialog Création */}
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Nouvel article blog</DialogTitle>
             </DialogHeader>
@@ -508,17 +393,26 @@ export default function ActualitesPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="content">Contenu *</Label>
+                <Label htmlFor="excerpt">Résumé *</Label>
                 <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Contenu de l'article..."
-                  rows={6}
+                  id="excerpt"
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  placeholder="Résumé de l'article..."
+                  rows={4}
                 />
               </div>
               <div>
-                <Label htmlFor="tag_color">Tag couleur</Label>
+                <Label htmlFor="tag">Tag *</Label>
+                <Input
+                  id="tag"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                  placeholder="Ex: Santé publique, Économie..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="tag_color">Couleur du tag</Label>
                 <Select
                   value={formData.tag_color}
                   onValueChange={(value) => setFormData({ ...formData, tag_color: value })}
@@ -535,31 +429,17 @@ export default function ActualitesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="image">Image (optionnel)</Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                {imagePreview && (
-                  <div className="mt-2 relative h-48 w-full rounded-lg overflow-hidden">
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                  </div>
-                )}
-              </div>
             </div>
             <DialogFooter>
               <Button
                 variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
-                disabled={uploading}
+                disabled={submitting}
               >
                 Annuler
               </Button>
-              <Button onClick={handleCreate} disabled={uploading}>
-                {uploading ? "Upload..." : "Créer"}
+              <Button onClick={handleCreate} disabled={submitting}>
+                {submitting ? "Création..." : "Créer"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -567,7 +447,7 @@ export default function ActualitesPage() {
 
         {/* Dialog Modification */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Modifier l'article</DialogTitle>
             </DialogHeader>
@@ -581,16 +461,24 @@ export default function ActualitesPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-content">Contenu *</Label>
+                <Label htmlFor="edit-excerpt">Résumé *</Label>
                 <Textarea
-                  id="edit-content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={6}
+                  id="edit-excerpt"
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  rows={4}
                 />
               </div>
               <div>
-                <Label htmlFor="edit-tag">Tag couleur</Label>
+                <Label htmlFor="edit-tag">Tag *</Label>
+                <Input
+                  id="edit-tag"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-tag-color">Couleur du tag</Label>
                 <Select
                   value={formData.tag_color}
                   onValueChange={(value) => setFormData({ ...formData, tag_color: value })}
@@ -607,31 +495,17 @@ export default function ActualitesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="edit-image">Nouvelle image (optionnel)</Label>
-                <Input
-                  id="edit-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                {imagePreview && (
-                  <div className="mt-2 relative h-48 w-full rounded-lg overflow-hidden">
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                  </div>
-                )}
-              </div>
             </div>
             <DialogFooter>
               <Button
                 variant="outline"
                 onClick={() => setEditDialogOpen(false)}
-                disabled={uploading}
+                disabled={submitting}
               >
                 Annuler
               </Button>
-              <Button onClick={handleUpdate} disabled={uploading}>
-                {uploading ? "Upload..." : "Modifier"}
+              <Button onClick={handleUpdate} disabled={submitting}>
+                {submitting ? "Modification..." : "Modifier"}
               </Button>
             </DialogFooter>
           </DialogContent>
