@@ -1,0 +1,477 @@
+# PROMPT DE DÉVELOPPEMENT — BACKOFFICE MISSU BALA
+
+> Copiez l'intégralité de ce document comme prompt pour générer l'application
+> web backoffice de MISSU BALA.
+
+---
+
+## 1. Contexte du projet
+
+**MISSU BALA** est une application mobile Android (Kotlin + Jetpack Compose) de
+régulation citoyenne au Gabon, déjà développée et connectée à un projet
+Supabase existant. L'app permet aux citoyens de :
+
+- Créer un compte et se connecter (email + mot de passe, Supabase Auth)
+- Scanner des produits pour vérifier leur conformité (registre AGANOR)
+- Consulter la mercuriale officielle des prix (DGCCRF)
+- Déposer des plaintes : prix excessifs (DGCCRF) et produits dangereux / périmés (AGASA)
+- Consulter les actualités AGASA et le blog MISSU BALA
+- Voir des bannières publicitaires (visuels importés par l'administrateur)
+
+Vous devez développer **le backoffice web d'administration** de cette
+application : une interface sécurisée par rôles permettant aux institutions de
+gérer le contenu que l'app mobile affiche, et de suivre les données envoyées
+par les citoyens.
+
+## 2. Règle absolue : base de données partagée, jamais modifiée
+
+Le backoffice se connecte **au même projet Supabase que l'application mobile**.
+Les clés de connexion (URL du projet + clé anonyme) sont déjà configurées dans
+les variables d'environnement.
+
+- **Le backoffice ne crée, ne modifie et ne supprime AUCUNE table, aucune
+  politique RLS, aucun bucket.** Le schéma est définitif et déjà en production
+  (migrations SQL 001 à 005 déjà exécutées côté Supabase).
+- Le backoffice interagit avec les données existantes via l'API Supabase
+  (supabase-js) : lecture, insertion, mise à jour, suppression de lignes.
+- **Clé `service_role` : uniquement côté serveur** du backoffice (routes API
+  Next.js ou équivalent), JAMAIS dans le bundle navigateur. Elle sert
+  uniquement aux opérations d'administration des comptes Auth (création,
+  réinitialisation de mot de passe, listage des emails) et à l'envoi de
+  notifications. Tout le reste passe par la session Supabase Auth de
+  l'administrateur connecté ; les politiques RLS déjà en place appliquent les
+  permissions par rôle (voir §4).
+
+## 3. Rôles et comptes
+
+Quatre types de comptes, définis dans la table `public.admin_users`
+(colonne `role`) :
+
+| Rôle          | Identifiant    | Périmètre |
+|---------------|----------------|-----------|
+| Super Admin   | `super_admin`  | Tout le backoffice : gestion des comptes administrateurs, WebTV, Actualités du blog, Publicité, Notifications, Premium, Métriques + vue consolidée de toutes les institutions |
+| AGASA         | `agasa`        | Ses actualités et les signalements sanitaires |
+| AGANOR        | `aganor`       | Le registre national des produits et les statistiques de scans |
+| DGCCRF        | `dgccrf`       | La mercuriale et les plaintes prix |
+
+Un compte administrateur = un utilisateur Supabase Auth (email + mot de passe)
+présent dans `admin_users`. **Seul le Super Admin gère les comptes, et il le
+fait directement depuis le backoffice** (module « Administrateurs », §6.2) :
+création des comptes des trois institutions, modification des informations
+d'accès, blocage/déblocage. Le premier Super Admin est créé une seule fois
+manuellement via le dashboard Supabase (bootstrap) ; tous les autres comptes
+sont créés depuis le backoffice.
+
+### Authentification du backoffice
+
+1. Écran de connexion (email + mot de passe, français) → `supabase.auth.signInWithPassword()`
+2. Après connexion, lire `admin_users` pour la ligne de l'utilisateur courant
+   (la politique RLS `admin_users_self_read` ne renvoie que sa propre ligne).
+3. Si aucune ligne → message « Ce compte n'a pas accès au backoffice » et
+   déconnexion (c'est un simple citoyen de l'app mobile).
+4. Si la ligne a `is_blocked = true` → message « Ce compte a été bloqué par
+   l'administrateur » et déconnexion.
+5. Le rôle détermine le menu latéral et les pages accessibles. Toute tentative
+   d'accès direct à une URL non autorisée redirige vers le tableau de bord du rôle.
+
+## 4. Matrice des permissions (modules × rôles)
+
+| Module | super_admin | agasa | aganor | dgccrf |
+|---|---|---|---|---|
+| Tableau de bord de son périmètre | ✔ global | ✔ | ✔ | ✔ |
+| Registre produits (CRUD) | ✔ | — | ✔ | — |
+| Statistiques de scans | ✔ | — | ✔ | — |
+| Actualités AGASA (`source='agasa'`, CRUD) | ✔ | ✔ | — | — |
+| Actualités blog (`source='blog'`, CRUD) | ✔ | — | — | — |
+| Plaintes DGCCRF (suivi) | ✔ | — | — | ✔ |
+| Signalements AGASA (suivi) | ✔ | ✔ | — | — |
+| Mercuriale (CRUD) | ✔ | — | — | ✔ |
+| WebTV (CRUD) | ✔ | — | — | — |
+| Bannières publicitaires (CRUD + upload image) | ✔ | — | — | — |
+| Administrateurs (création, modification, blocage) | ✔ | — | — | — |
+| Notifications aux utilisateurs | ✔ | — | — | — |
+| Premium (offres + abonnés) | ✔ | — | — | — |
+| Métriques globales | ✔ | — | — | — |
+| Mon compte (nom, mot de passe) | ✔ | ✔ | ✔ | ✔ |
+
+## 5. Schéma de données (tables existantes — à ne jamais modifier)
+
+### `public.admin_users`
+| Colonne | Type | Notes |
+|---|---|---|
+| id | uuid | = `auth.users.id` |
+| role | text | `super_admin` \| `agasa` \| `aganor` \| `dgccrf` |
+| full_name | text | |
+| is_blocked | boolean | `true` = compte bloqué (aucun droit backoffice, la RLS verrouille tout) |
+| created_at | timestamptz | |
+
+Les emails ne sont pas dans cette table : le module Administrateurs les
+obtient côté serveur avec `supabase.auth.admin.listUsers()` (clé
+`service_role`, jamais exposée au navigateur).
+
+### `public.products` — registre national AGANOR (clé : `barcode`)
+| Colonne | Type | Notes |
+|---|---|---|
+| barcode | text (PK) | EAN-13 / EAN-8 / UPC |
+| name | text | |
+| brand | text | |
+| category | text | ex. « Épicerie sucrée » |
+| origin | text | ex. « Gabon (Mitzic) » |
+| image_url | text | URL du visuel |
+| ingredients | text[] | |
+| allergens | text[] | |
+| nutri_score | text | `A` à `E` |
+| authentic | boolean | `true` = authentique |
+| authenticity_note | text | |
+| aganor_certified | boolean | |
+| warnings | text[] | avertissements affichés à l'utilisateur |
+
+### `public.scan_history` — scans effectués par les citoyens (lecture seule)
+| Colonne | Type |
+|---|---|
+| id | uuid |
+| user_id | uuid |
+| created_at | timestamptz |
+| product_name | text |
+| brand | text |
+| barcode | text |
+| status | text (`authentique` \| `contrefacon`) |
+| nutri_score | text |
+| image_url | text |
+
+### `public.complaints` — plaintes citoyennes
+| Colonne | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| user_id | uuid | |
+| created_at | timestamptz | |
+| agency | text | `AGASA` \| `DGCCRF` — **c'est cette valeur qui filtre le périmètre** |
+| type | text | `prix` \| `sante` |
+| product | text | |
+| merchant | text | |
+| official_price | double precision | |
+| practiced_price | double precision | |
+| details | text | |
+| location_label | text | |
+| latitude / longitude | double precision | |
+| status | text | voir workflow ci-dessous |
+| photo_urls | text[] | chemins des photos jointes dans le bucket privé `complaint-photos` (format `{user_id}/{uuid}.jpg`) |
+
+**Workflow des statuts** (champ modifiable par le backoffice uniquement) :
+
+`soumise` → `en_cours` → `traitee` ou `transmise`
+
+- `soumise` : déposée par le citoyen (valeur par défaut)
+- `en_cours` : prise en charge par l'agence
+- `traitee` : clôturée
+- `transmise` : escaladée à une autre autorité
+
+**Le backoffice ne modifie que `status`.** Toute autre colonne d'une plainte
+est en lecture seule (données citoyennes). Les administrateurs ne peuvent pas
+supprimer de plaintes.
+
+**Photos jointes** : le bucket `complaint-photos` est **privé**. Pour afficher
+une photo dans la fiche plainte, générez une URL signée :
+`supabase.storage.from('complaint-photos').createSignedUrl(path, 3600)`.
+N'utilisez jamais d'URL publique.
+
+### `public.mercuriale` — prix officiels plafonnés
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| group_name | text | ex. « Produits de première nécessité » |
+| category | text | |
+| subcategory | text | |
+| product | text | |
+| unit | text | ex. « kg », « L », « sachet » |
+| price_wholesale | int | FCFA, prix gros |
+| price_semi | int | FCFA, demi-gros |
+| price_retail | int | FCFA, prix détail |
+| sort_order | int | ordre d'affichage dans l'app |
+
+### `public.news` — actualités
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| source | text | `agasa` (rubrique AGASA de l'app) \| `blog` (page d'accueil de l'app) |
+| tag | text | ex. « Alerte », « Dossier », « Conseil » |
+| title | text | |
+| excerpt | text | résumé affiché dans les listes |
+| content | text | corps complet de l'article affiché dans l'app mobile (paragraphes séparés par une ligne vide) ; null = l'app affiche uniquement le résumé |
+| published_date | date | |
+| tag_color | text | `green` \| `gold` \| `red` \| `dark` |
+| sort_order | int | ordre d'affichage (plus petit = premier) |
+
+### `public.banners` — bannières publicitaires (Super Admin)
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| title | text | légende optionnelle affichée sur l'image |
+| subtitle | text | |
+| image_url | text | **URL publique du fichier image** (bucket Storage `banners`) |
+| link_url | text | destination du clic (optionnel) |
+| is_active | boolean | |
+| sort_order | int | **l'app affiche la première bannière `is_active=true` triée par `sort_order` croissant** |
+| created_at | timestamptz | |
+
+### `public.webtv` — vidéos WebTV (Super Admin)
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| title | text | |
+| description | text | |
+| duration | text | ex. `12:04` |
+| tag | text | `Émission` \| `Reportage` \| `Magazine` |
+| video_url | text | |
+| thumbnail_url | text | |
+| published_date | date | |
+| is_published | boolean | |
+| sort_order | int | |
+
+### `public.saved_articles` — favoris des citoyens (lecture seule, Super Admin)
+| Colonne | Type | Notes |
+|---|---|---|
+| user_id | uuid | citoyen |
+| news_id | bigint | référence `news.id` |
+| created_at | timestamptz | |
+
+Indique quels articles ont été sauvegardés par les citoyens (statistiques de
+lecture). Aucune écriture depuis le backoffice.
+
+### `public.notifications` — annonces officielles (Super Admin)
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| title | text | titre de l'annonce |
+| body | text | corps du message |
+| created_at | timestamptz | |
+| sent_by | uuid | administrateur émetteur |
+
+Les lignes insérées ici apparaissent immédiatement dans le centre de
+notifications de l'application mobile (« Annonces officielles », jusqu'à 10
+plus récentes). C'est le canal principal d'envoi. Aucune suppression
+(rester simple : les annonces restent dans l'historique).
+
+### `public.push_tokens` — jetons push des appareils (réservé à la diffusion FCM future)
+| Colonne | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| user_id | uuid | citoyen propriétaire de l'appareil |
+| token | text | jeton FCM (unique) |
+| platform | text | `android` |
+| created_at | timestamptz | |
+
+L'app mobile n'enregistre pas encore de jetons : la table est vide pour
+l'instant. Le module Notifications doit insérer l'annonce dans
+`notifications` (canal actif) et préparer l'envoi FCM (canal futur) sans
+échouer si `push_tokens` est vide.
+
+### `public.premium_plans` — offres Premium (Super Admin)
+| Colonne | Type | Notes |
+|---|---|---|
+| id | bigint | |
+| code | text | identifiant unique (ex. `mensuel`, `annuel`) |
+| name | text | nom affiché |
+| price_fcfa | int | prix en FCFA |
+| period_months | int | durée en mois |
+| features | text[] | liste des avantages |
+| is_active | boolean | une offre inactive n'est pas proposée |
+| sort_order | int | ordre d'affichage |
+
+### `public.subscriptions` — abonnements des citoyens
+| Colonne | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| user_id | uuid | citoyen |
+| plan_code | text | référence `premium_plans.code` |
+| status | text | `active` \| `expired` \| `cancelled` |
+| started_at | timestamptz | début de l'abonnement |
+| expires_at | timestamptz | fin (null = illimité) |
+| source | text | `backoffice` (octroi manuel) \| `mobile` (à venir) |
+| created_at | timestamptz | |
+
+Le paiement in-app n'est pas encore actif : les abonnements sont créés
+manuellement par le Super Admin (source `backoffice`).
+
+### Bucket Storage `banners` (public)
+Uniquement pour les visuels publicitaires. Upload via
+`supabase.storage.from('banners').upload()`, l'URL publique est obtenue avec
+`getPublicUrl()`. Accepter JPG/PNG/WebP, recommander un format bandeau
+(~1200×400 px).
+
+### Bucket Storage `complaint-photos` (privé)
+Photos jointes aux plaintes par les citoyens depuis l'application mobile.
+**Privé** : aucune URL publique — affichage uniquement via URL signées
+(`createSignedUrl`). Chemin : `{user_id}/{uuid}.jpg`. Les citoyens écrivent
+dans leur propre dossier ; la lecture est réservée au propriétaire et aux
+administrateurs (`super_admin`, `agasa`, `dgccrf`).
+
+## 6. Modules à développer
+
+### 6.1 Connexion
+Écran de connexion sobre aux couleurs institutionnelles (voir §7), message
+d'erreur en français, redirection selon le rôle (§3).
+
+### 6.2 Super Admin
+- **Tableau de bord global** : compteurs — plaintes par agence et par statut,
+  nombre de scans (7 derniers jours), nombre de produits au registre, dernières
+  actualités publiées.
+- **Actualités** : CRUD complet sur toutes les lignes de `news` (les deux
+  sources), filtre par source, champs exactement ceux de la table, sélecteur
+  `tag_color` avec aperçu des 4 couleurs, zone de texte `content` pour le corps
+  complet de l'article (paragraphes séparés par une ligne vide — c'est ce texte
+  que l'application mobile affiche à l'ouverture de l'article).
+- **WebTV** : CRUD sur `webtv` (upload d'une miniature recommandé dans le
+  bucket `banners`), publication/dépublication, réordonnancement via `sort_order`.
+- **Publicité (bannières)** : module phare —
+  - Tableau des banniires (visuel, titre, statut actif/inactif, ordre)
+  - Formulaire de création : **sélection d'un fichier image sur l'ordinateur,
+    upload vers le bucket `banners`, puis insertion de la ligne** avec l'URL
+    publique obtenue
+  - Aperçu en direct de la bannière telle qu'elle apparaîtra dans l'app
+    (image pleine largeur, badge « SPONSORISÉ », légende en bas à gauche)
+  - Activation / désactivation et réordonnancement (`sort_order`)
+  - Rappel visible : « L'application affiche la première bannière active »
+- **Métriques** : page dédiée — nombre total de citoyens (comptage
+  `auth.admin.listUsers()` côté serveur), citoyens actifs (ayant scanné ou
+  déposé une plainte sur 30 jours), scans par jour (30 jours), plaintes par
+  agence et par statut, top 10 des produits scannés, articles les plus
+  sauvegardés (`saved_articles` joint à `news`), abonnés Premium actifs et
+  revenus mensuels estimés (somme des `premium_plans.price_fcfa` des
+  abonnements actifs, au prorata du mois). Graphiques simples (barres,
+  courbes) ; export CSV optionnel.
+- **Notifications aux utilisateurs** : module d'envoi d'annonces —
+  - Formulaire titre + message (longueur max 500 caractères, compteur)
+  - À l'envoi : insertion d'une ligne dans `notifications` (canal actif —
+    l'annonce apparaît dans le centre de notifications de l'app mobile,
+    rubrique « Annonces officielles »)
+  - Historique des annonces envoyées (titre, date, émetteur)
+  - Encart d'information : « La diffusion push native (FCM) sera activée
+    quand l'app mobile enregistrera ses jetons dans `push_tokens` ;
+    prévoir l'appel serveur FCM dans une route dédiée, sans échouer si
+    aucun jeton n'est présent. »
+- **Premium** : gestion du système d'abonnement —
+  - **Offres** : CRUD sur `premium_plans` (code, nom, prix FCFA, durée en
+    mois, liste éditable des avantages `features`, activation/désactivation,
+    ordre). Deux offres existent déjà (`mensuel` 2000 FCFA, `annuel` 15000 FCFA).
+  - **Abonnés** : liste des `subscriptions` (citoyen, offre, statut, dates),
+    filtre par statut ; octroi manuel d'un abonnement (insert `source =
+    'backoffice'`) et annulation (`status = 'cancelled'`) ; expiration
+    automatique affichée quand `expires_at` est dépassé (bascule `status =
+    'expired'`).
+  - Encart : « Le paiement in-app n'est pas encore actif — les abonnements
+    sont octroyés manuellement. »
+- **Administrateurs** : gestion complète des comptes du backoffice —
+  - **Liste** : toutes les lignes de `admin_users`, enrichies des emails via
+    `supabase.auth.admin.listUsers()` (route serveur avec `service_role`).
+    Colonnes : nom, email, rôle, statut (actif/bloqué), date de création.
+  - **Créer un compte** (AGASA, AGANOR ou DGCCRF) : formulaire nom complet +
+    email + rôle (jamais `super_admin` sauf si l'admin le choisit
+    explicitement) → route serveur `auth.admin.createUser()` (mot de passe
+    temporaire généré, `email_confirm: true`) puis insertion de la ligne
+    `admin_users`. Afficher le mot de passe temporaire **une seule fois** avec
+    un bouton « Copier ».
+  - **Modifier** : nom complet, rôle (avec confirmation pour les changements
+    de rôle), réinitialisation du mot de passe (`auth.admin.updateUserById` →
+    nouveau mot de passe temporaire affiché une fois).
+  - **Bloquer / débloquer** : bascule `is_blocked` dans `admin_users`. Un
+    compte bloqué n'a plus aucun droit (la RLS verrouille tout) ; au prochain
+    accès il voit « Ce compte a été bloqué par l'administrateur ». Optionnel
+    en plus : `auth.admin.updateUserById({ ban_duration: '876000h' })` pour
+    invalider immédiatement ses sessions actives.
+  - **Supprimer** : retirer la ligne `admin_users` (l'utilisateur Auth peut
+    rester pour un usage citoyen) avec double confirmation. Le Super Admin ne
+    peut pas se supprimer lui-même.
+- **Vue consolidée plaintes** : toutes les plaintes des deux agences, filtres
+  agence/statut/période, détail complet, changement de statut.
+
+### 6.3 AGASA
+- **Tableau de bord** : signalements par statut, 7 derniers jours.
+- **Mes actualités** : CRUD sur `news` où `source='agasa'` uniquement
+  (la RLS bloque de toute façon les autres lignes — masquer le champ source).
+- **Signalements sanitaires** : liste des `complaints` où `agency='AGASA'`
+  (type `sante`), filtres par statut et période, fiche détaillée (produit,
+  commerçant, problèmes constatés, symptômes, localisation avec lien Google
+  Maps `https://maps.google.com/?q=<lat>,<lng>`, photos jointes affichées via
+  URL signées du bucket `complaint-photos`), changement de statut.
+
+### 6.4 AGANOR
+- **Tableau de bord** : scans par jour, top 10 des produits scannés, taux de
+  produits non conformes.
+- **Registre des produits** : CRUD complet sur `products`. Formulaire avec
+  tous les champs, y compris les listes éditables (ingrédients, allergènes,
+  avertissements → tableau `text[]`), sélecteur Nutri-Score A–E, interrupteurs
+  `authentic` et `aganor_certified`. Recherche par code-barres, nom, marque.
+- **Statistiques de scans** : lecture seule de `scan_history` (agrégats par
+  jour/produit/statut ; jamais de suppression).
+
+### 6.5 DGCCRF
+- **Tableau de bord** : plaintes par statut, 7 derniers jours.
+- **Mercuriale** : CRUD complet sur `mercuriale`, regroupement visuel par
+  `group_name` → `category` → `subcategory`, gestion de `sort_order`,
+  recherche. Les prix sont en FCFA (entiers).
+- **Plaintes prix** : liste des `complaints` où `agency='DGCCRF'` (type
+  `prix`), avec comparaison visuelle prix officiel / prix pratiqué (écart en
+  %), localisation, photos jointes (URL signées du bucket `complaint-photos`),
+  changement de statut.
+
+### 6.6 Mon compte (tous les rôles)
+- Nom complet modifiable (UPDATE de sa propre ligne `admin_users` — la RLS
+  empêche tout changement de rôle ou déblocage par soi-même)
+- Changement de mot de passe (`supabase.auth.updateUser`) avec confirmation
+  de l'ancien mot de passe côté serveur
+- Affichage du rôle et de l'email en lecture seule
+
+### 6.7 Commun à tous les rôles
+- Barre latérale (desktop) / menu coulissant (mobile) ne montrant que les
+  modules autorisés du rôle
+- En-tête : logo « MISSU BALA — Backoffice », nom et rôle de l'admin, bouton
+  de déconnexion
+- Tableaux : pagination, recherche, filtres, tri, états vides en français
+- Formulaires : validation champs obligatoires, messages d'erreur en français
+- Toutes les horodatages affichés au format `JJ/MM/AAAA HH:mm`
+
+### 6.8 Vue citoyens (Super Admin, optionnelle)
+Liste en lecture seule des comptes citoyens (`auth.admin.listUsers()` côté
+serveur) : email, date d'inscription, dernière activité (scans/plaintes) —
+sans jamais modifier ni supprimer de compte citoyen.
+
+## 7. Design
+
+- Interface **entièrement en français**
+- Charte institutionnelle : vert `#1B6B3C` (primaire), or `#D4A843`
+  (accents/CTA secondaires), rouge `#C0392B` (alertes, plaintes urgentes),
+  fond clair `#F6F8F6`
+- Police de titres avec caractère (Fredoka ou équivalent arrondi), corps de
+  texte lisible (Nunito ou équivalent)
+- Look professionnel type backoffice institutionnel moderne : sidebar sombre
+  verte, cartes à coins arrondis (12–16 px), badges de statut colorés
+- Statuts plaintes : `soumise` = gris/bleu, `en_cours` = or, `traitee` = vert,
+  `transmise` = rouge
+
+## 8. Interdits
+
+- Ne jamais exécuter de SQL DDL ni modifier les politiques RLS
+- Ne jamais exposer la clé `service_role` dans le navigateur : uniquement
+  dans les routes serveur du backoffice (variables d'environnement)
+- Ne jamais supprimer ou modifier les comptes citoyens ni leurs données
+  (plaintes et scans : lecture et changement de statut uniquement)
+- La création et le blocage des comptes administrateurs sont réservés au
+  Super Admin ; les comptes institutionnels ne peuvent pas gérer de comptes
+- Pas de données de démonstration : l'interface doit refléter uniquement les
+  vraies données de la base
+
+## 9. Livrables
+
+1. Application web responsive (desktop prioritaire, tablette utilisable),
+   Next.js (ou équivalent) avec routes serveur protégées
+2. Écran de connexion + redirection par rôle + détection des comptes bloqués
+3. Les modules détaillés en §6, restreints par rôle (quatre tableaux de bord :
+   Super Admin, AGASA, AGANOR, DGCCRF)
+4. Gestion complète des administrateurs (création, modification, blocage,
+   réinitialisation de mot de passe) via routes serveur
+5. Envoi d'annonces aux utilisateurs de l'app mobile (table `notifications`)
+6. Gestion des offres Premium et des abonnés
+7. Page de métriques globales
+8. Upload et gestion des images publicitaires dans le bucket `banners`
+9. Code TypeScript propre, typé, avec gestion d'erreurs en français
