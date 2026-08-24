@@ -58,7 +58,7 @@ export default async function handler(
 
     // Enrichir avec emails
     const enrichedAdmins = (adminUsers || []).map((admin) => {
-      const authUser = users.find((u) => u.id === admin.id);
+      const authUser = (users as any[]).find((u) => u.id === admin.id);
       return {
         ...admin,
         email: authUser?.email || null,
