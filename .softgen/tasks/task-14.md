@@ -13,10 +13,10 @@ position: 14
 Implémenter les modules spécifiques AGASA (plaintes et statistiques).
 
 ## Checklist
-- [ ] Créer /admin/plaintes-agasa.tsx (tableau plaintes, filtres statut, réponses)
-- [ ] Créer /admin/stats-agasa.tsx (métriques plaintes AGASA, graphiques)
-- [ ] Ajouter liens sidebar pour AGASA
-- [ ] Schéma DB: table complaints avec agency='AGASA'
+- [x] Créer /admin/plaintes-agasa.tsx (tableau plaintes, filtres statut, réponses)
+- [x] Créer /admin/stats-agasa.tsx (métriques plaintes AGASA, graphiques)
+- [x] Ajouter liens sidebar pour AGASA
+- [x] Schéma DB: table complaints avec agency='AGASA'
 
 ## Acceptance
 - Admin AGASA peut voir et répondre aux plaintes AGASA

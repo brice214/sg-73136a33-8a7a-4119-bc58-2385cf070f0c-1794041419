@@ -99,6 +99,18 @@ const navItems: NavItem[] = [
     icon: Newspaper,
     roles: ["agasa"],
   },
+  {
+    label: "Plaintes AGASA",
+    href: "/admin/plaintes-agasa",
+    icon: AlertCircle,
+    roles: ["agasa"],
+  },
+  {
+    label: "Statistiques",
+    href: "/admin/stats-agasa",
+    icon: TrendingUp,
+    roles: ["agasa"],
+  },
 
   // AGANOR
   {
