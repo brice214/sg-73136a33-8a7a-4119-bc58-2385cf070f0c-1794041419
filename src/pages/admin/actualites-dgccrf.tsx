@@ -13,53 +13,58 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, Trash2, Search, Newspaper } from "lucide-react";
 
-interface News {
-  id: string;
+interface NewsArticle {
+  id: number;
   title: string;
-  content: string;
+  excerpt: string;
+  tag: string;
+  tag_color: string;
   source: string;
-  category: string;
-  image_url: string | null;
-  is_featured: boolean;
-  published_at: string | null;
-  created_at: string;
+  published_date: string;
+  sort_order: number;
 }
 
+const TAG_COLORS = [
+  { value: "red", label: "Rouge" },
+  { value: "blue", label: "Bleu" },
+  { value: "green", label: "Vert" },
+  { value: "yellow", label: "Jaune" },
+  { value: "purple", label: "Violet" },
+  { value: "orange", label: "Orange" },
+];
+
 export default function ActualitesDgccrf() {
-  const [news, setNews] = useState<News[]>([]);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     title: "",
-    content: "",
-    category: "Actualité",
-    image_url: "",
-    is_featured: false,
+    excerpt: "",
+    tag: "",
+    tag_color: "blue",
   });
 
-  const categories = ["Actualité", "Événement", "Annonce", "Communiqué"];
-
   useEffect(() => {
-    loadNews();
+    loadArticles();
   }, []);
 
-  async function loadNews() {
+  async function loadArticles() {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from("news")
         .select("*")
         .eq("source", "dgccrf")
-        .order("created_at", { ascending: false });
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      setNews(data || []);
+      setArticles(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -72,33 +77,35 @@ export default function ActualitesDgccrf() {
   }
 
   async function handleCreate() {
-    if (!formData.title || !formData.content) {
+    if (!formData.title || !formData.excerpt || !formData.tag) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Titre et contenu requis",
+        description: "Titre, résumé et tag requis",
       });
       return;
     }
 
     try {
       setIsSubmitting(true);
+      const maxSortOrder = articles.reduce((max, a) => Math.max(max, a.sort_order), 0);
+
       const { error } = await supabase.from("news").insert([{
         title: formData.title,
-        content: formData.content,
+        excerpt: formData.excerpt,
+        tag: formData.tag,
+        tag_color: formData.tag_color,
         source: "dgccrf",
-        category: formData.category,
-        image_url: formData.image_url || null,
-        is_featured: formData.is_featured,
-        published_at: new Date().toISOString(),
+        sort_order: maxSortOrder + 1,
+        published_date: new Date().toISOString(),
       }]);
 
       if (error) throw error;
 
       toast({ title: "Actualité créée" });
       setIsCreateOpen(false);
-      setFormData({ title: "", content: "", category: "Actualité", image_url: "", is_featured: false });
-      loadNews();
+      setFormData({ title: "", excerpt: "", tag: "", tag_color: "blue" });
+      loadArticles();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -111,7 +118,7 @@ export default function ActualitesDgccrf() {
   }
 
   async function handleEdit() {
-    if (!selectedNews) return;
+    if (!selectedArticle) return;
 
     try {
       setIsSubmitting(true);
@@ -119,18 +126,17 @@ export default function ActualitesDgccrf() {
         .from("news")
         .update({
           title: formData.title,
-          content: formData.content,
-          category: formData.category,
-          image_url: formData.image_url || null,
-          is_featured: formData.is_featured,
+          excerpt: formData.excerpt,
+          tag: formData.tag,
+          tag_color: formData.tag_color,
         })
-        .eq("id", selectedNews.id);
+        .eq("id", selectedArticle.id);
 
       if (error) throw error;
 
       toast({ title: "Actualité modifiée" });
       setIsEditOpen(false);
-      loadNews();
+      loadArticles();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -142,15 +148,15 @@ export default function ActualitesDgccrf() {
     }
   }
 
-  async function handleDelete(newsItem: News) {
-    if (!confirm(`Supprimer "${newsItem.title}" ?`)) return;
+  async function handleDelete(article: NewsArticle) {
+    if (!confirm(`Supprimer "${article.title}" ?`)) return;
 
     try {
-      const { error } = await supabase.from("news").delete().eq("id", newsItem.id);
+      const { error } = await supabase.from("news").delete().eq("id", article.id);
       if (error) throw error;
 
       toast({ title: "Actualité supprimée" });
-      loadNews();
+      loadArticles();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -160,22 +166,22 @@ export default function ActualitesDgccrf() {
     }
   }
 
-  function openEdit(newsItem: News) {
-    setSelectedNews(newsItem);
+  function openEdit(article: NewsArticle) {
+    setSelectedArticle(article);
     setFormData({
-      title: newsItem.title,
-      content: newsItem.content,
-      category: newsItem.category,
-      image_url: newsItem.image_url || "",
-      is_featured: newsItem.is_featured,
+      title: article.title,
+      excerpt: article.excerpt,
+      tag: article.tag,
+      tag_color: article.tag_color,
     });
     setIsEditOpen(true);
   }
 
-  const filteredNews = news.filter(
+  const filteredArticles = articles.filter(
     (item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.content.toLowerCase().includes(searchTerm.toLowerCase())
+      item.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tag.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -201,16 +207,7 @@ export default function ActualitesDgccrf() {
               <CardTitle className="text-sm font-medium">Total actualités</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{news.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">À la une</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-accent">{news.filter((n) => n.is_featured).length}</div>
+              <div className="text-3xl font-bold text-primary">{articles.length}</div>
             </CardContent>
           </Card>
 
@@ -219,7 +216,24 @@ export default function ActualitesDgccrf() {
               <CardTitle className="text-sm font-medium">Publiées</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{news.filter((n) => n.published_at).length}</div>
+              <div className="text-3xl font-bold text-green-600">
+                {articles.filter((a) => a.published_date).length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Cette semaine</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-accent">
+                {articles.filter((a) => {
+                  const weekAgo = new Date();
+                  weekAgo.setDate(weekAgo.getDate() - 7);
+                  return new Date(a.published_date) > weekAgo;
+                }).length}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -241,36 +255,36 @@ export default function ActualitesDgccrf() {
           <CardContent>
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Chargement...</div>
-            ) : filteredNews.length === 0 ? (
+            ) : filteredArticles.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">Aucune actualité</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Titre</TableHead>
-                    <TableHead>Catégorie</TableHead>
+                    <TableHead>Tag</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Statut</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredNews.map((item) => (
+                  {filteredArticles.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.title}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{item.category}</Badge>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            backgroundColor: `${item.tag_color}20`,
+                            borderColor: item.tag_color,
+                            color: item.tag_color,
+                          }}
+                        >
+                          {item.tag}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(item.created_at).toLocaleDateString("fr-FR")}
-                      </TableCell>
-                      <TableCell>
-                        {item.is_featured && <Badge className="bg-accent mr-2">À la une</Badge>}
-                        {item.published_at ? (
-                          <Badge className="bg-green-600">Publiée</Badge>
-                        ) : (
-                          <Badge variant="outline">Brouillon</Badge>
-                        )}
+                        {new Date(item.published_date).toLocaleDateString("fr-FR")}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
@@ -307,53 +321,40 @@ export default function ActualitesDgccrf() {
               </div>
 
               <div>
-                <Label htmlFor="category">Catégorie</Label>
-                <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
-                  <SelectTrigger id="category">
+                <Label htmlFor="excerpt">Résumé *</Label>
+                <Textarea
+                  id="excerpt"
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  placeholder="Résumé de l'actualité"
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tag">Tag *</Label>
+                <Input
+                  id="tag"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                  placeholder="Ex: Prix, Mercuriale, Contrôles..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tag_color">Couleur du tag</Label>
+                <Select value={formData.tag_color} onValueChange={(val) => setFormData({ ...formData, tag_color: val })}>
+                  <SelectTrigger id="tag_color">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {TAG_COLORS.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        {color.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="content">Contenu *</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Contenu de l'actualité"
-                  rows={6}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="image_url">URL image (optionnel)</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_featured"
-                  checked={formData.is_featured}
-                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_featured" className="cursor-pointer">
-                  Mettre à la une
-                </Label>
               </div>
             </div>
             <DialogFooter>
@@ -383,51 +384,38 @@ export default function ActualitesDgccrf() {
               </div>
 
               <div>
-                <Label htmlFor="edit_category">Catégorie</Label>
-                <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
-                  <SelectTrigger id="edit_category">
+                <Label htmlFor="edit_excerpt">Résumé *</Label>
+                <Textarea
+                  id="edit_excerpt"
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  rows={4}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit_tag">Tag *</Label>
+                <Input
+                  id="edit_tag"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit_tag_color">Couleur du tag</Label>
+                <Select value={formData.tag_color} onValueChange={(val) => setFormData({ ...formData, tag_color: val })}>
+                  <SelectTrigger id="edit_tag_color">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {TAG_COLORS.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        {color.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="edit_content">Contenu *</Label>
-                <Textarea
-                  id="edit_content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={6}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit_image_url">URL image</Label>
-                <Input
-                  id="edit_image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit_is_featured"
-                  checked={formData.is_featured}
-                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="edit_is_featured" className="cursor-pointer">
-                  Mettre à la une
-                </Label>
               </div>
             </div>
             <DialogFooter>
