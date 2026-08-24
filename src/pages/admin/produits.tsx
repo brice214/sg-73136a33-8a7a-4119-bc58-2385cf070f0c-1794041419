@@ -54,9 +54,8 @@ export default function ProduitsPage() {
   const [formData, setFormData] = useState({
     barcode: "",
     name: "",
-    manufacturer: "",
+    brand: "",
     category: "Alimentaire",
-    is_approved: true,
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -86,9 +85,8 @@ export default function ProduitsPage() {
     setFormData({
       barcode: "",
       name: "",
-      manufacturer: "",
+      brand: "",
       category: "Alimentaire",
-      is_approved: true,
     });
     setCreateDialog(true);
   }
@@ -98,9 +96,8 @@ export default function ProduitsPage() {
     setFormData({
       barcode: product.barcode,
       name: product.name,
-      manufacturer: product.manufacturer,
-      category: product.category,
-      is_approved: product.is_approved,
+      brand: product.brand || "",
+      category: product.category || "Alimentaire",
     });
     setEditDialog(true);
   }
@@ -212,22 +209,22 @@ export default function ProduitsPage() {
 
           <Card className="border-primary/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Approuvés</CardTitle>
+              <CardTitle className="text-sm font-medium">Certifiés</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
-                {products.filter((p) => p.is_approved).length}
+                {products.filter((p) => p.aganor_certified).length}
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-primary/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">En attente</CardTitle>
+              <CardTitle className="text-sm font-medium">Non certifiés</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-amber-500">
-                {products.filter((p) => !p.is_approved).length}
+                {products.filter((p) => !p.aganor_certified).length}
               </div>
             </CardContent>
           </Card>
@@ -304,15 +301,15 @@ export default function ProduitsPage() {
                     <TableRow key={product.barcode}>
                       <TableCell className="font-mono text-sm">{product.barcode}</TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{product.manufacturer}</TableCell>
+                      <TableCell className="text-muted-foreground">{product.brand || "—"}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{product.category}</Badge>
+                        <Badge variant="secondary">{product.category || "—"}</Badge>
                       </TableCell>
                       <TableCell>
-                        {product.is_approved ? (
-                          <Badge className="bg-green-600">Approuvé</Badge>
+                        {product.aganor_certified ? (
+                          <Badge className="bg-green-600">Certifié</Badge>
                         ) : (
-                          <Badge className="bg-amber-500">En attente</Badge>
+                          <Badge className="bg-amber-500">Non certifié</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -358,12 +355,12 @@ export default function ProduitsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="manufacturer">Fabricant *</Label>
+                <Label htmlFor="brand">Marque</Label>
                 <Input
-                  id="manufacturer"
-                  value={formData.manufacturer}
-                  onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-                  placeholder="ex: Coca Cola Company"
+                  id="brand"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                  placeholder="ex: Coca Cola"
                 />
               </div>
               <div>
@@ -412,11 +409,11 @@ export default function ProduitsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit_manufacturer">Fabricant *</Label>
+                <Label htmlFor="edit_brand">Marque</Label>
                 <Input
-                  id="edit_manufacturer"
-                  value={formData.manufacturer}
-                  onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+                  id="edit_brand"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 />
               </div>
               <div>
