@@ -1,24 +1,24 @@
 ---
 title: Module Premium (Super Admin)
-status: todo
+status: done
 priority: medium
 type: feature
-tags: [super-admin, crud]
+tags: [super-admin, premium]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 11
+created_at: 2026-08-24T16:57:00Z
+position: 10
 ---
 
 ## Notes
-CRUD premium_plans (offres) + gestion subscriptions (octroi manuel, annulation). Liste abonnés actifs/expirés.
+Super Admin gère les offres Premium et abonnements. Tables: premium_plans (offres), subscriptions (abonnements utilisateurs). CRUD offres, octroi manuel, annulation.
 
 ## Checklist
-- [ ] Page /admin/premium avec 2 onglets (Offres / Abonnés)
-- [ ] Onglet Offres: CRUD premium_plans (code, name, price_fcfa, period_months, features[], is_active)
-- [ ] Onglet Abonnés: tableau subscriptions avec filtres statut
-- [ ] Bouton "Octroyer Premium" (sélectionner citoyen + plan + durée)
-- [ ] Bouton Annuler abonnement (status='cancelled')
-- [ ] Badge couleur par statut (active=vert, expired=gris, cancelled=rouge)
+- [ ] Page /admin/premium avec 2 sections: Offres + Abonnés
+- [ ] Section Offres: CRUD premium_plans (name, code, price_fcfa, period_months, features[], is_active)
+- [ ] Section Abonnés: liste subscriptions avec user email, plan, dates, statut
+- [ ] Octroi manuel: sélectionner user + plan → insert subscription avec source='backoffice'
+- [ ] Annulation: changer status='cancelled' immédiatement
+- [ ] Filtres: plan, statut, recherche user
 
 ## Acceptance
 - CRUD offres fonctionne
