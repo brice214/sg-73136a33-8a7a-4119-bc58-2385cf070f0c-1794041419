@@ -13,9 +13,9 @@ import { Badge } from "@/components/ui/badge";
 type Notification = {
   id: number;
   title: string;
-  message: string;
-  sent_at: string;
-  sent_by: string;
+  body: string;
+  created_at: string;
+  sent_by: string | null;
 };
 
 export default function NotificationsPage() {
@@ -26,7 +26,7 @@ export default function NotificationsPage() {
   const [sending, setSending] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    message: "",
+    body: "",
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function NotificationsPage() {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .order("sent_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setNotifications(data || []);
@@ -55,7 +55,7 @@ export default function NotificationsPage() {
   }
 
   async function handleSend() {
-    if (!formData.title.trim() || !formData.message.trim()) {
+    if (!formData.title.trim() || !formData.body.trim()) {
       toast({
         variant: "destructive",
         title: "Champs requis",
@@ -68,9 +68,8 @@ export default function NotificationsPage() {
       setSending(true);
       const { error } = await supabase.from("notifications").insert({
         title: formData.title.trim(),
-        message: formData.message.trim(),
+        body: formData.body.trim(),
         sent_by: session!.user.id,
-        sent_at: new Date().toISOString(),
       });
 
       if (error) throw error;
@@ -80,7 +79,7 @@ export default function NotificationsPage() {
         description: "La notification a été enregistrée avec succès",
       });
 
-      setFormData({ title: "", message: "" });
+      setFormData({ title: "", body: "" });
       loadNotifications();
     } catch (error: any) {
       toast({
@@ -148,19 +147,19 @@ export default function NotificationsPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Message</label>
                   <Textarea
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    value={formData.body}
+                    onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                     placeholder="Contenu de l'annonce"
                     rows={6}
                     maxLength={500}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {formData.message.length}/500 caractères
+                    {formData.body.length}/500 caractères
                   </p>
                 </div>
                 <Button
                   onClick={handleSend}
-                  disabled={sending || !formData.title.trim() || !formData.message.trim()}
+                  disabled={sending || !formData.title.trim() || !formData.body.trim()}
                   className="w-full"
                 >
                   <Send className="w-4 h-4 mr-2" />
@@ -199,7 +198,7 @@ export default function NotificationsPage() {
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="font-semibold text-foreground">{notif.title}</h3>
                           <Badge variant="secondary" className="ml-2 shrink-0">
-                            {new Date(notif.sent_at).toLocaleDateString("fr-FR", {
+                            {new Date(notif.created_at).toLocaleDateString("fr-FR", {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
@@ -209,7 +208,7 @@ export default function NotificationsPage() {
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {notif.message}
+                          {notif.body}
                         </p>
                       </div>
                     ))}
