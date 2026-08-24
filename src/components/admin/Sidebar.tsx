@@ -57,7 +57,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Publicité",
-    href: "/admin/bannieres",
+    href: "/admin/publicite",
     icon: Image,
     roles: ["super_admin"],
   },
