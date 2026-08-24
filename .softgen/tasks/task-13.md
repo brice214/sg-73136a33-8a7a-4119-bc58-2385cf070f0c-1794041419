@@ -1,25 +1,26 @@
 ---
 title: Module Mon Compte (Tous rôles)
-status: todo
+status: done
 priority: low
 type: feature
-tags: [all-roles]
+tags: [all-roles, account]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 13
+created_at: 2026-08-24T16:59:00Z
+position: 12
 ---
 
 ## Notes
-Profil admin: modification full_name, changement mot de passe via Supabase Auth.
+Page /admin/compte pour tous les administrateurs. Modification du nom complet (admin_users.full_name) et changement de mot de passe (Supabase Auth). Validation côté client.
 
 ## Checklist
-- [ ] Page /admin/mon-compte avec 2 sections
-- [ ] Section Profil: formulaire full_name (update admin_users)
-- [ ] Section Sécurité: formulaire changement mdp (updateUser password)
-- [ ] Validation: mdp min 8 caractères, confirmation match
-- [ ] Toast succès/erreur
+- [ ] Page /admin/compte avec 2 cartes: Profil + Sécurité
+- [ ] Carte Profil: champ full_name, bouton Enregistrer
+- [ ] Carte Sécurité: ancien mdp, nouveau mdp, confirmation
+- [ ] Update admin_users.full_name via Supabase client
+- [ ] Changement mdp via supabase.auth.updateUser()
+- [ ] Validation: mdp >= 8 caractères, confirmation identique
 
 ## Acceptance
-- Modification nom met à jour admin_users.full_name
+- Modification full_name fonctionne
 - Changement mdp via Supabase Auth fonctionne
 - Erreurs validation affichées clairement
