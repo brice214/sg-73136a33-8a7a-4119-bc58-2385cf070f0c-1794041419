@@ -61,9 +61,12 @@ export default function PlaintesDgccrfPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from("complaints")
-        .select("*, profiles(full_name)")
+        .select(`
+          *,
+          profiles(full_name)
+        `)
         .eq("agency", "DGCCRF")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }) as any;
 
       if (error) throw error;
       setComplaints(data || []);

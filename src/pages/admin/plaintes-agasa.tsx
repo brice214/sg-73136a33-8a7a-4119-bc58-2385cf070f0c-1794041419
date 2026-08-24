@@ -65,9 +65,12 @@ export default function PlaintesAgasaPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from("complaints")
-        .select("*, profiles(full_name)")
+        .select(`
+          *,
+          profiles(full_name)
+        `)
         .eq("agency", "AGASA")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }) as any;
 
       if (error) throw error;
       setComplaints(data || []);

@@ -431,18 +431,6 @@ export default function ProduitsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit_approved"
-                  checked={formData.is_approved}
-                  onChange={(e) => setFormData({ ...formData, is_approved: e.target.checked })}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="edit_approved" className="cursor-pointer">
-                  Produit approuvé
-                </Label>
-              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditDialog(false)} disabled={submitting}>
