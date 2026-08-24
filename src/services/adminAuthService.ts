@@ -80,7 +80,7 @@ export const adminAuthService = {
    * Écouter les changements de session
    */
   onAuthStateChange(callback: (session: AdminSession | null) => void) {
-    return supabase.auth.onAuthStateChanged(async (event, session) => {
+    return supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT" || !session) {
         callback(null);
         return;
