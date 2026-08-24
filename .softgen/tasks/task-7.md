@@ -1,26 +1,26 @@
 ---
 title: Module WebTV (Super Admin)
-status: todo
+status: done
 priority: medium
 type: feature
-tags: [super-admin, crud]
+tags: [super-admin, webtv, crud]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 7
+created_at: 2026-08-24T16:53:00Z
+position: 6
 ---
 
 ## Notes
-CRUD webtv avec upload miniature (Storage bucket webtv_thumbnails). Publication/dépublication, réordonnancement.
+Super Admin publie des vidéos Youtube. Schéma DB: title, description, tag, video_url (URL Youtube), thumbnail_url, duration, published_date, is_published, sort_order.
 
 ## Checklist
-- [ ] Page /admin/webtv avec grille cards
-- [ ] Formulaire création/édition (title, description, duration, tag, video_url, thumbnail upload)
-- [ ] Upload miniature → Storage webtv_thumbnails
-- [ ] Toggle publication (is_published)
-- [ ] Réordonnancement drag-and-drop
+- [ ] Page /admin/webtv avec tableau webtv
+- [ ] Dialog création: title, description, tag, video_url (Youtube), duration, thumbnail_url
+- [ ] Publication/dépublication toggle (is_published)
 - [ ] Suppression avec confirmation
+- [ ] Réordonnancement drag-and-drop → sort_order
+- [ ] Aperçu embed Youtube
 
 ## Acceptance
-- Upload miniature génère signed URL
-- Publication toggle masque/affiche dans l'app mobile
+- Upload URL Youtube fonctionne
+- Publication toggle masque/affiche dans app mobile
 - Réordonnancement sauvegarde sort_order

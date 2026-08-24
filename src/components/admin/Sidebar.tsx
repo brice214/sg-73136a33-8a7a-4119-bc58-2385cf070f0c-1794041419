@@ -19,6 +19,8 @@ import {
   BarChart3,
   Stethoscope,
   ShoppingCart,
+  Shield,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -81,12 +83,6 @@ const navItems: NavItem[] = [
     label: "Administrateurs",
     href: "/admin/administrateurs",
     icon: Users,
-    roles: ["super_admin"],
-  },
-  {
-    label: "Plaintes",
-    href: "/admin/plaintes",
-    icon: AlertCircle,
     roles: ["super_admin"],
   },
   {
