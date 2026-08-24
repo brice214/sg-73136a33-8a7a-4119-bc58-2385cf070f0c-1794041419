@@ -120,6 +120,12 @@ const navItems: NavItem[] = [
     roles: ["aganor"],
   },
   {
+    label: "Mes actualités",
+    href: "/admin/actualites-aganor",
+    icon: Newspaper,
+    roles: ["aganor"],
+  },
+  {
     label: "Statistiques scans",
     href: "/admin/scans",
     icon: BarChart3,
@@ -131,6 +137,12 @@ const navItems: NavItem[] = [
     label: "Mercuriale",
     href: "/admin/mercuriale",
     icon: DollarSign,
+    roles: ["dgccrf"],
+  },
+  {
+    label: "Mes actualités",
+    href: "/admin/actualites-dgccrf",
+    icon: Newspaper,
     roles: ["dgccrf"],
   },
   {
