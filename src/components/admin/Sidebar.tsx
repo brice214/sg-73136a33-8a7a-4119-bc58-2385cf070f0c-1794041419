@@ -13,6 +13,12 @@ import {
   Video,
   LogOut,
   ChevronRight,
+  TrendingUp,
+  Crown,
+  UserCircle,
+  BarChart3,
+  Stethoscope,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -26,46 +32,19 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  // Dashboard (tous)
   {
-    label: "Dashboard",
+    label: "Tableau de bord",
     href: "/admin/dashboard",
     icon: LayoutDashboard,
     roles: ["super_admin", "agasa", "aganor", "dgccrf"],
   },
-  {
-    label: "Administrateurs",
-    href: "/admin/administrateurs",
-    icon: Users,
-    roles: ["super_admin"],
-  },
-  {
-    label: "Produits",
-    href: "/admin/produits",
-    icon: Package,
-    roles: ["super_admin", "aganor"],
-  },
+
+  // Super Admin uniquement
   {
     label: "Actualités",
     href: "/admin/actualites",
     icon: Newspaper,
-    roles: ["super_admin", "agasa"],
-  },
-  {
-    label: "Plaintes",
-    href: "/admin/plaintes",
-    icon: AlertCircle,
-    roles: ["super_admin", "agasa", "dgccrf"],
-  },
-  {
-    label: "Mercuriale",
-    href: "/admin/mercuriale",
-    icon: DollarSign,
-    roles: ["super_admin", "dgccrf"],
-  },
-  {
-    label: "Bannières",
-    href: "/admin/bannieres",
-    icon: Image,
     roles: ["super_admin"],
   },
   {
@@ -75,10 +54,96 @@ const navItems: NavItem[] = [
     roles: ["super_admin"],
   },
   {
+    label: "Publicité",
+    href: "/admin/bannieres",
+    icon: Image,
+    roles: ["super_admin"],
+  },
+  {
+    label: "Métriques globales",
+    href: "/admin/metriques",
+    icon: TrendingUp,
+    roles: ["super_admin"],
+  },
+  {
     label: "Notifications",
     href: "/admin/notifications",
     icon: Bell,
     roles: ["super_admin"],
+  },
+  {
+    label: "Premium",
+    href: "/admin/premium",
+    icon: Crown,
+    roles: ["super_admin"],
+  },
+  {
+    label: "Administrateurs",
+    href: "/admin/administrateurs",
+    icon: Users,
+    roles: ["super_admin"],
+  },
+  {
+    label: "Plaintes",
+    href: "/admin/plaintes",
+    icon: AlertCircle,
+    roles: ["super_admin"],
+  },
+  {
+    label: "Citoyens",
+    href: "/admin/citoyens",
+    icon: UserCircle,
+    roles: ["super_admin"],
+  },
+
+  // AGASA
+  {
+    label: "Mes actualités",
+    href: "/admin/actualites",
+    icon: Newspaper,
+    roles: ["agasa"],
+  },
+  {
+    label: "Signalements sanitaires",
+    href: "/admin/plaintes",
+    icon: Stethoscope,
+    roles: ["agasa"],
+  },
+
+  // AGANOR
+  {
+    label: "Registre produits",
+    href: "/admin/produits",
+    icon: Package,
+    roles: ["aganor"],
+  },
+  {
+    label: "Statistiques scans",
+    href: "/admin/scans",
+    icon: BarChart3,
+    roles: ["aganor"],
+  },
+
+  // DGCCRF
+  {
+    label: "Mercuriale",
+    href: "/admin/mercuriale",
+    icon: DollarSign,
+    roles: ["dgccrf"],
+  },
+  {
+    label: "Plaintes prix",
+    href: "/admin/plaintes",
+    icon: ShoppingCart,
+    roles: ["dgccrf"],
+  },
+
+  // Mon compte (tous)
+  {
+    label: "Mon compte",
+    href: "/admin/mon-compte",
+    icon: UserCircle,
+    roles: ["super_admin", "agasa", "aganor", "dgccrf"],
   },
 ];
 
@@ -132,7 +197,7 @@ export function Sidebar() {
             const isActive = router.pathname === item.href;
 
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href + item.label} href={item.href}>
                 <Button
                   variant="ghost"
                   className={cn(
