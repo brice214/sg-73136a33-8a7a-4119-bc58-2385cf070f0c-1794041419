@@ -25,7 +25,7 @@ interface Complaint {
   status: string;
   photo_urls: string[];
   created_at: string;
-  profiles?: { full_name: string | null };
+  profiles: { full_name: string | null } | null;
 }
 
 const statusLabels = {

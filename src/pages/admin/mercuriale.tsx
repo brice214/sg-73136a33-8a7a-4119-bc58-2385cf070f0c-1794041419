@@ -13,81 +13,60 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, Trash2, DollarSign, TrendingUp } from "lucide-react";
 
-interface PriceReference {
-  id: string;
-  product_name: string;
+interface MercurialeItem {
+  id: number;
+  group_name: string;
   category: string;
+  subcategory: string;
+  product: string;
   unit: string;
-  reference_price: number;
-  min_price: number;
-  max_price: number;
-  region: string;
-  updated_at: string;
+  price_wholesale: number;
+  price_semi: number;
+  price_retail: number;
+  sort_order: number;
 }
 
-const categories = [
-  "Alimentaire",
-  "Boissons",
-  "Hygiène",
-  "Cosmétiques",
-  "Autre",
-];
-
-const units = [
-  "kg",
-  "unité",
-  "litre",
-  "sac",
-  "paquet",
-];
-
-const regions = [
-  "Libreville",
-  "Port-Gentil",
-  "Franceville",
-  "Oyem",
-  "Moanda",
-  "Nationale",
-];
+const categories = ["Vivres", "Légumes", "Fruits", "Viandes", "Poissons", "Boissons", "Autre"];
+const units = ["kg", "unité", "litre", "sac", "paquet", "boîte"];
 
 export default function MercurialePage() {
   const { toast } = useToast();
-  const [prices, setPrices] = useState<PriceReference[]>([]);
+  const [items, setItems] = useState<MercurialeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterRegion, setFilterRegion] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const [createDialog, setCreateDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
-  const [selectedPrice, setSelectedPrice] = useState<PriceReference | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MercurialeItem | null>(null);
 
   const [formData, setFormData] = useState({
-    product_name: "",
-    category: "Alimentaire",
+    group_name: "",
+    category: "Vivres",
+    subcategory: "",
+    product: "",
     unit: "kg",
-    reference_price: 0,
-    min_price: 0,
-    max_price: 0,
-    region: "Nationale",
+    price_wholesale: 0,
+    price_semi: 0,
+    price_retail: 0,
   });
 
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    loadPrices();
+    loadItems();
   }, []);
 
-  async function loadPrices() {
+  async function loadItems() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("price_references")
+        .from("mercuriale")
         .select("*")
-        .order("updated_at", { ascending: false });
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      setPrices(data || []);
+      setItems(data || []);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur chargement", description: error.message });
     } finally {
@@ -97,46 +76,48 @@ export default function MercurialePage() {
 
   function openCreate() {
     setFormData({
-      product_name: "",
-      category: "Alimentaire",
+      group_name: "",
+      category: "Vivres",
+      subcategory: "",
+      product: "",
       unit: "kg",
-      reference_price: 0,
-      min_price: 0,
-      max_price: 0,
-      region: "Nationale",
+      price_wholesale: 0,
+      price_semi: 0,
+      price_retail: 0,
     });
     setCreateDialog(true);
   }
 
-  function openEdit(price: PriceReference) {
-    setSelectedPrice(price);
+  function openEdit(item: MercurialeItem) {
+    setSelectedItem(item);
     setFormData({
-      product_name: price.product_name,
-      category: price.category,
-      unit: price.unit,
-      reference_price: price.reference_price,
-      min_price: price.min_price,
-      max_price: price.max_price,
-      region: price.region,
+      group_name: item.group_name,
+      category: item.category,
+      subcategory: item.subcategory,
+      product: item.product,
+      unit: item.unit,
+      price_wholesale: item.price_wholesale,
+      price_semi: item.price_semi,
+      price_retail: item.price_retail,
     });
     setEditDialog(true);
   }
 
   async function handleCreate() {
-    if (!formData.product_name || formData.reference_price <= 0) {
-      toast({ variant: "destructive", title: "Erreur", description: "Nom et prix référence requis" });
+    if (!formData.product || formData.price_retail <= 0) {
+      toast({ variant: "destructive", title: "Erreur", description: "Produit et prix détail requis" });
       return;
     }
 
     try {
       setSubmitting(true);
-      const { error } = await supabase.from("price_references").insert([formData]);
+      const { error } = await supabase.from("mercuriale").insert([formData]);
 
       if (error) throw error;
 
-      toast({ title: "Prix de référence créé" });
+      toast({ title: "Prix mercuriale créé" });
       setCreateDialog(false);
-      loadPrices();
+      loadItems();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur création", description: error.message });
     } finally {
@@ -145,20 +126,20 @@ export default function MercurialePage() {
   }
 
   async function handleEdit() {
-    if (!selectedPrice) return;
+    if (!selectedItem) return;
 
     try {
       setSubmitting(true);
       const { error } = await supabase
-        .from("price_references")
+        .from("mercuriale")
         .update(formData)
-        .eq("id", selectedPrice.id);
+        .eq("id", selectedItem.id);
 
       if (error) throw error;
 
-      toast({ title: "Prix de référence modifié" });
+      toast({ title: "Prix mercuriale modifié" });
       setEditDialog(false);
-      loadPrices();
+      loadItems();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur modification", description: error.message });
     } finally {
@@ -166,25 +147,24 @@ export default function MercurialePage() {
     }
   }
 
-  async function handleDelete(price: PriceReference) {
-    if (!confirm(`Supprimer ${price.product_name} ?`)) return;
+  async function handleDelete(item: MercurialeItem) {
+    if (!confirm(`Supprimer ${item.product} ?`)) return;
 
     try {
-      const { error } = await supabase.from("price_references").delete().eq("id", price.id);
+      const { error } = await supabase.from("mercuriale").delete().eq("id", item.id);
 
       if (error) throw error;
 
-      toast({ title: "Prix de référence supprimé" });
-      loadPrices();
+      toast({ title: "Prix mercuriale supprimé" });
+      loadItems();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur suppression", description: error.message });
     }
   }
 
-  const filteredPrices = prices.filter((p) => {
-    if (filterCategory !== "all" && p.category !== filterCategory) return false;
-    if (filterRegion !== "all" && p.region !== filterRegion) return false;
-    if (searchQuery && !p.product_name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+  const filteredItems = items.filter((item) => {
+    if (filterCategory !== "all" && item.category !== filterCategory) return false;
+    if (searchQuery && !item.product.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
@@ -212,7 +192,7 @@ export default function MercurialePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{prices.length}</div>
+              <div className="text-3xl font-bold text-primary">{items.length}</div>
             </CardContent>
           </Card>
 
@@ -222,18 +202,21 @@ export default function MercurialePage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-accent">
-                {new Set(prices.map((p) => p.category)).size}
+                {new Set(items.map((i) => i.category)).size}
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-primary/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Régions</CardTitle>
+              <CardTitle className="text-sm font-medium">Prix moyen détail</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {new Set(prices.map((p) => p.region)).size}
+              <div className="text-2xl font-bold text-primary">
+                {items.length > 0
+                  ? Math.round(items.reduce((sum, i) => sum + i.price_retail, 0) / items.length)
+                  : 0}{" "}
+                FCFA
               </div>
             </CardContent>
           </Card>
@@ -242,20 +225,18 @@ export default function MercurialePage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-green-600" />
-                Dernière MAJ
+                Produits suivis
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm font-medium text-green-600">
-                {prices.length > 0 ? new Date(prices[0].updated_at).toLocaleDateString("fr-FR") : "—"}
-              </div>
+              <div className="text-3xl font-bold text-green-600">{items.length}</div>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="search">Rechercher</Label>
                 <Input
@@ -281,22 +262,6 @@ export default function MercurialePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="filterRegion">Région</Label>
-                <Select value={filterRegion} onValueChange={setFilterRegion}>
-                  <SelectTrigger id="filterRegion">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes</SelectItem>
-                    {regions.map((reg) => (
-                      <SelectItem key={reg} value={reg}>
-                        {reg}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -306,9 +271,9 @@ export default function MercurialePage() {
                   <TableHead>Produit</TableHead>
                   <TableHead>Catégorie</TableHead>
                   <TableHead>Unité</TableHead>
-                  <TableHead>Prix référence</TableHead>
-                  <TableHead>Min - Max</TableHead>
-                  <TableHead>Région</TableHead>
+                  <TableHead>Prix gros</TableHead>
+                  <TableHead>Prix demi-gros</TableHead>
+                  <TableHead>Prix détail</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -319,35 +284,31 @@ export default function MercurialePage() {
                       Chargement...
                     </TableCell>
                   </TableRow>
-                ) : filteredPrices.length === 0 ? (
+                ) : filteredItems.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
-                      Aucun prix de référence
+                      Aucun prix mercuriale
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPrices.map((price) => (
-                    <TableRow key={price.id}>
-                      <TableCell className="font-medium">{price.product_name}</TableCell>
+                  filteredItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.product}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{price.category}</Badge>
+                        <Badge variant="secondary">{item.category}</Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{price.unit}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.unit}</TableCell>
+                      <TableCell className="font-mono text-sm">{item.price_wholesale} FCFA</TableCell>
+                      <TableCell className="font-mono text-sm">{item.price_semi} FCFA</TableCell>
                       <TableCell className="font-mono font-semibold text-primary">
-                        {price.reference_price} FCFA
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">
-                        {price.min_price} - {price.max_price} FCFA
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-accent">{price.region}</Badge>
+                        {item.price_retail} FCFA
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => openEdit(price)}>
+                          <Button size="sm" variant="outline" onClick={() => openEdit(item)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDelete(price)}>
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(item)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -363,15 +324,15 @@ export default function MercurialePage() {
         <Dialog open={createDialog} onOpenChange={setCreateDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nouveau prix de référence</DialogTitle>
+              <DialogTitle>Nouveau prix mercuriale</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="product_name">Nom produit *</Label>
+                <Label htmlFor="product">Nom produit *</Label>
                 <Input
-                  id="product_name"
-                  value={formData.product_name}
-                  onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  id="product"
+                  value={formData.product}
+                  onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                   placeholder="ex: Riz blanc"
                 />
               </div>
@@ -392,6 +353,26 @@ export default function MercurialePage() {
                   </Select>
                 </div>
                 <div>
+                  <Label htmlFor="subcategory">Sous-catégorie</Label>
+                  <Input
+                    id="subcategory"
+                    value={formData.subcategory}
+                    onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                    placeholder="ex: Riz local"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="group_name">Groupe</Label>
+                  <Input
+                    id="group_name"
+                    value={formData.group_name}
+                    onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
+                    placeholder="ex: Céréales"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="unit">Unité</Label>
                   <Select value={formData.unit} onValueChange={(val) => setFormData({ ...formData, unit: val })}>
                     <SelectTrigger id="unit">
@@ -407,52 +388,37 @@ export default function MercurialePage() {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="reference_price">Prix de référence (FCFA) *</Label>
-                <Input
-                  id="reference_price"
-                  type="number"
-                  value={formData.reference_price}
-                  onChange={(e) => setFormData({ ...formData, reference_price: parseFloat(e.target.value) || 0 })}
-                  placeholder="ex: 500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="min_price">Prix min (FCFA)</Label>
+                  <Label htmlFor="price_wholesale">Prix gros (FCFA)</Label>
                   <Input
-                    id="min_price"
+                    id="price_wholesale"
                     type="number"
-                    value={formData.min_price}
-                    onChange={(e) => setFormData({ ...formData, min_price: parseFloat(e.target.value) || 0 })}
-                    placeholder="ex: 450"
+                    value={formData.price_wholesale}
+                    onChange={(e) => setFormData({ ...formData, price_wholesale: parseInt(e.target.value) || 0 })}
+                    placeholder="450"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="max_price">Prix max (FCFA)</Label>
+                  <Label htmlFor="price_semi">Prix demi-gros (FCFA)</Label>
                   <Input
-                    id="max_price"
+                    id="price_semi"
                     type="number"
-                    value={formData.max_price}
-                    onChange={(e) => setFormData({ ...formData, max_price: parseFloat(e.target.value) || 0 })}
-                    placeholder="ex: 550"
+                    value={formData.price_semi}
+                    onChange={(e) => setFormData({ ...formData, price_semi: parseInt(e.target.value) || 0 })}
+                    placeholder="500"
                   />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="region">Région</Label>
-                <Select value={formData.region} onValueChange={(val) => setFormData({ ...formData, region: val })}>
-                  <SelectTrigger id="region">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((reg) => (
-                      <SelectItem key={reg} value={reg}>
-                        {reg}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div>
+                  <Label htmlFor="price_retail">Prix détail (FCFA) *</Label>
+                  <Input
+                    id="price_retail"
+                    type="number"
+                    value={formData.price_retail}
+                    onChange={(e) => setFormData({ ...formData, price_retail: parseInt(e.target.value) || 0 })}
+                    placeholder="550"
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -469,15 +435,15 @@ export default function MercurialePage() {
         <Dialog open={editDialog} onOpenChange={setEditDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Modifier prix de référence</DialogTitle>
+              <DialogTitle>Modifier prix mercuriale</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="edit_product_name">Nom produit *</Label>
+                <Label htmlFor="edit_product">Nom produit *</Label>
                 <Input
-                  id="edit_product_name"
-                  value={formData.product_name}
-                  onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  id="edit_product"
+                  value={formData.product}
+                  onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -497,6 +463,24 @@ export default function MercurialePage() {
                   </Select>
                 </div>
                 <div>
+                  <Label htmlFor="edit_subcategory">Sous-catégorie</Label>
+                  <Input
+                    id="edit_subcategory"
+                    value={formData.subcategory}
+                    onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_group_name">Groupe</Label>
+                  <Input
+                    id="edit_group_name"
+                    value={formData.group_name}
+                    onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
+                  />
+                </div>
+                <div>
                   <Label htmlFor="edit_unit">Unité</Label>
                   <Select value={formData.unit} onValueChange={(val) => setFormData({ ...formData, unit: val })}>
                     <SelectTrigger id="edit_unit">
@@ -512,49 +496,34 @@ export default function MercurialePage() {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="edit_reference_price">Prix de référence (FCFA) *</Label>
-                <Input
-                  id="edit_reference_price"
-                  type="number"
-                  value={formData.reference_price}
-                  onChange={(e) => setFormData({ ...formData, reference_price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="edit_min_price">Prix min (FCFA)</Label>
+                  <Label htmlFor="edit_price_wholesale">Prix gros (FCFA)</Label>
                   <Input
-                    id="edit_min_price"
+                    id="edit_price_wholesale"
                     type="number"
-                    value={formData.min_price}
-                    onChange={(e) => setFormData({ ...formData, min_price: parseFloat(e.target.value) || 0 })}
+                    value={formData.price_wholesale}
+                    onChange={(e) => setFormData({ ...formData, price_wholesale: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit_max_price">Prix max (FCFA)</Label>
+                  <Label htmlFor="edit_price_semi">Prix demi-gros (FCFA)</Label>
                   <Input
-                    id="edit_max_price"
+                    id="edit_price_semi"
                     type="number"
-                    value={formData.max_price}
-                    onChange={(e) => setFormData({ ...formData, max_price: parseFloat(e.target.value) || 0 })}
+                    value={formData.price_semi}
+                    onChange={(e) => setFormData({ ...formData, price_semi: parseInt(e.target.value) || 0 })}
                   />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="edit_region">Région</Label>
-                <Select value={formData.region} onValueChange={(val) => setFormData({ ...formData, region: val })}>
-                  <SelectTrigger id="edit_region">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((reg) => (
-                      <SelectItem key={reg} value={reg}>
-                        {reg}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div>
+                  <Label htmlFor="edit_price_retail">Prix détail (FCFA) *</Label>
+                  <Input
+                    id="edit_price_retail"
+                    type="number"
+                    value={formData.price_retail}
+                    onChange={(e) => setFormData({ ...formData, price_retail: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>

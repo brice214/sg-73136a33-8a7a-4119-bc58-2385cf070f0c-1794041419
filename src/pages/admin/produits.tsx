@@ -16,10 +16,17 @@ import { Plus, Pencil, Trash2, Package } from "lucide-react";
 interface Product {
   barcode: string;
   name: string;
-  manufacturer: string;
-  category: string;
-  is_approved: boolean;
-  created_at: string;
+  brand: string | null;
+  category: string | null;
+  origin: string | null;
+  image_url: string | null;
+  ingredients: string[];
+  allergens: string[];
+  nutri_score: string | null;
+  authentic: boolean;
+  authenticity_note: string | null;
+  aganor_certified: boolean;
+  warnings: string[];
 }
 
 const categories = [
@@ -99,19 +106,27 @@ export default function ProduitsPage() {
   }
 
   async function handleCreate() {
-    if (!formData.barcode || !formData.name || !formData.manufacturer) {
-      toast({ variant: "destructive", title: "Erreur", description: "Tous les champs obligatoires requis" });
+    if (!formData.barcode || !formData.name) {
+      toast({ variant: "destructive", title: "Erreur", description: "Code-barres et nom requis" });
       return;
     }
 
     try {
       setSubmitting(true);
-      const { error } = await supabase.from("products").insert([formData]);
+      const { error } = await supabase.from("products").insert([{
+        barcode: formData.barcode,
+        name: formData.name,
+        brand: formData.brand || null,
+        category: formData.category || null,
+        authentic: true,
+        aganor_certified: true,
+      }]);
 
       if (error) throw error;
 
       toast({ title: "Produit créé" });
       setCreateDialog(false);
+      setFormData({ barcode: "", name: "", brand: "", category: "" });
       loadProducts();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur création", description: error.message });
@@ -129,9 +144,8 @@ export default function ProduitsPage() {
         .from("products")
         .update({
           name: formData.name,
-          manufacturer: formData.manufacturer,
-          category: formData.category,
-          is_approved: formData.is_approved,
+          brand: formData.brand || null,
+          category: formData.category || null,
         })
         .eq("barcode", selectedProduct.barcode);
 

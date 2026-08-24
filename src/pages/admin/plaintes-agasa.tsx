@@ -23,10 +23,12 @@ interface Complaint {
   practiced_price: number | null;
   details: string | null;
   location_label: string | null;
+  latitude: number | null;
+  longitude: number | null;
   status: string;
   photo_urls: string[];
   created_at: string;
-  profiles?: { full_name: string | null };
+  profiles: { full_name: string | null } | null;
 }
 
 const statusLabels = {
