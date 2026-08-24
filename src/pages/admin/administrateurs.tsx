@@ -97,24 +97,27 @@ export default function AdministrateursPage() {
   async function loadAdmins() {
     try {
       setLoading(true);
-      const { data: adminUsers, error } = await supabase
-        .from("admin_users")
-        .select("*")
-        .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      // Récupérer le token d'accès
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ variant: "destructive", title: "Session expirée" });
+        return;
+      }
 
-      // Récupérer emails depuis auth.users
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-      
-      const enrichedAdmins = (adminUsers || []).map((admin) => {
-        const authUser = users?.find((u) => u.id === admin.id);
-        return {
-          ...admin,
-          email: authUser?.email,
-        };
+      // Appeler l'endpoint API sécurisé
+      const response = await fetch("/api/admin/list-admins", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erreur chargement");
+      }
+
+      const { admins: enrichedAdmins } = await response.json();
       setAdmins(enrichedAdmins);
     } catch (error: any) {
       toast({
