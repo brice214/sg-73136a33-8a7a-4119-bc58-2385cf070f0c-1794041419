@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,25 +13,25 @@
 @layer base {
   :root {
     --radius: 0.75rem;
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 120 20% 97%;
+    --foreground: 150 20% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 150 20% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 217 62% 29%;
+    --popover-foreground: 150 20% 15%;
+    --primary: 150 61% 26%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 217 62% 29%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 222 30% 45%;
-    --accent: 41 65% 55%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
+    --secondary: 120 15% 94%;
+    --secondary-foreground: 150 20% 15%;
+    --muted: 120 15% 94%;
+    --muted-foreground: 150 20% 45%;
+    --accent: 43 68% 55%;
+    --accent-foreground: 150 20% 15%;
+    --destructive: 4 69% 49%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 62% 29%;
+    --border: 120 15% 88%;
+    --input: 120 15% 88%;
+    --ring: 150 61% 26%;
     --chart-1: 41.1 71.2% 54.4%;
     --chart-2: 184.7 32.4% 48.6%;
     --chart-3: 227.4 15.2% 33.3%;
@@ -89,7 +89,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
 
