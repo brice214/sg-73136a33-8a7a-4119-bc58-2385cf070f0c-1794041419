@@ -1,29 +1,28 @@
 ---
-title: Landing Page LIONS SERVICES GABON
+title: Authentification et structure de base
 status: in_progress
 priority: urgent
 type: feature
-tags: [landing-page, corporate]
+tags: [auth, layout, supabase]
 created_by: agent
-created_at: 2026-08-24T15:46:00Z
+created_at: 2026-08-24T15:53:00Z
 position: 1
 ---
 
 ## Notes
-Landing page complète pour LIONS SERVICES GABON avec sections Hero, Services, À propos, Contact. Design corporate Oil & Gas basé sur la charte du logo (bleu royal + or).
+Mise en place de l'authentification Supabase, écran de connexion, structure de base du backoffice avec sidebar et routing par rôle. Configuration du design system institutionnel (vert, or, rouge).
 
 ## Checklist
-- [x] Setup design system (globals.css + tailwind.config.ts)
-- [x] Navigation fixe avec logo et liens smooth scroll
-- [x] Hero section avec message d'accroche et CTA
-- [x] Section Services avec 4-6 cards (inspection, métrologie, expertise)
-- [x] Section À propos avec présentation entreprise
-- [x] Footer avec infos contact et liens sociaux
-- [x] Formulaire Contact avec validation et structure pour envoi email
-- [ ] Animations d'entrée sur scroll
-- [ ] Responsive mobile/tablet/desktop
+- [ ] Setup design system (globals.css + tailwind - vert #1B6B3C, or #D4A843)
+- [ ] Configuration Supabase client
+- [ ] Écran de connexion (email + password)
+- [ ] Hook useAuth avec vérification admin_users
+- [ ] Layout backoffice avec sidebar
+- [ ] Routing par rôle (super_admin, agasa, aganor, dgccrf)
+- [ ] Détection comptes bloqués
+- [ ] Page 404 custom
 
 ## Acceptance
-- Landing page affiche toutes les sections avec design cohérent bleu royal + or
-- Formulaire contact valide les champs et affiche structure prête pour SMTP
-- Navigation smooth scroll fonctionne vers chaque section
+- Connexion redirige vers le bon dashboard selon le rôle
+- Comptes bloqués (is_blocked=true) ne peuvent pas se connecter
+- Comptes citoyens (non dans admin_users) sont refusés

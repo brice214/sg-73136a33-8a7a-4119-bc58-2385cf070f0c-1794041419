@@ -1,27 +1,29 @@
-# LIONS SERVICES GABON — Landing Page
+# MISSU BALA — Backoffice d'administration
 
 ## Vision
-Landing page corporate pour LIONS SERVICES GABON, entreprise d'inspection Oil & Gas au Gabon. Présente l'entreprise, ses services, et collecte les demandes de contact.
+Backoffice web sécurisé par rôles pour gérer l'application mobile MISSU BALA (régulation citoyenne au Gabon). Interface permettant aux institutions (AGASA, AGANOR, DGCCRF) et au Super Admin de gérer le contenu, suivre les plaintes, et administrer l'application.
 
 ## Design
-**Palette:**
-- `--primary: 217 62% 29%` (bleu royal du logo)
-- `--accent: 41 65% 55%` (or doré du logo)
-- `--background: 0 0% 100%` (blanc pur)
-- `--foreground: 222 47% 11%` (gris très foncé)
-- `--muted: 210 40% 96%` (gris très clair bleuté)
-- `--card: 0 0% 100%` (blanc)
+**Palette institutionnelle:**
+- `--primary: 150 61% 26%` (vert #1B6B3C)
+- `--accent: 43 68% 55%` (or #D4A843 - CTA secondaires)
+- `--destructive: 4 69% 49%` (rouge #C0392B - alertes)
+- `--background: 120 20% 97%` (fond clair #F6F8F6)
+- `--foreground: 150 20% 15%` (texte sombre)
+- `--muted: 120 15% 94%` (gris clair verdâtre)
 
 **Typographie:**
-- Headings: Rajdhani (600, 700) — géométrique, technique, rappelle instrumentation
-- Body: Inter (400, 500, 600) — corporate, neutre, lisible
+- Headings: Fredoka (500, 600, 700) — arrondi, institutionnel moderne
+- Body: Nunito (400, 500, 600) — lisible, professionnel
 
-**Style:** Corporate industriel Oil & Gas — rigueur, précision, fiabilité. Bleu royal dominant (60%), or en accents stratégiques (10%), espacements généreux.
+**Style:** Backoffice institutionnel moderne — sidebar sombre verte, cartes arrondies (border-radius 12-16px), badges de statut colorés, interface responsive desktop-first.
 
 ## Features
-- Hero section avec message principal et CTA
-- Section Services (cards avec icons)
-- Section À propos / Présentation entreprise
-- Formulaire Contact prêt pour SMTP (validation client-side)
-- Navigation fixe avec smooth scroll
-- Responsive mobile-first
+- Authentification multi-rôles avec Supabase Auth
+- 4 dashboards (Super Admin, AGASA, AGANOR, DGCCRF)
+- Gestion produits (AGANOR), actualités (AGASA/blog), mercuriale (DGCCRF)
+- Suivi plaintes/signalements avec photos signées
+- WebTV et bannières publicitaires (Super Admin)
+- Gestion administrateurs (création, blocage, réinitialisation)
+- Notifications push et Premium
+- Métriques globales avec graphiques
