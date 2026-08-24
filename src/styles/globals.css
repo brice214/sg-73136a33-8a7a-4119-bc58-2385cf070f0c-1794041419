@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,26 +12,26 @@
 
 @layer base {
   :root {
-    --radius: 0.55rem;
+    --radius: 0.75rem;
     --background: 0 0% 100%;
-    --foreground: 330 0% 0.3%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 330 0% 0.3%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 330 0% 0.3%;
-    --primary: 0 0% 4.5%;
-    --primary-foreground: 0 0% 97.5%;
-    --secondary: 0 0% 97.3%;
-    --secondary-foreground: 0 0% 4.5%;
-    --muted: 0 0% 97.3%;
-    --muted-foreground: 0 0% 55.7%;
-    --accent: 0 0% 97.3%;
-    --accent-foreground: 0 0% 4.5%;
-    --destructive: 359.9132 100.2494% 67.8807%;
-    --destructive-foreground: 0 0% 0%;
-    --border: 0 0% 92.2%;
-    --input: 0 0% 92.2%;
-    --ring: 0 0% 70.8%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 62% 29%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 217 62% 29%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 222 30% 45%;
+    --accent: 41 65% 55%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 62% 29%;
     --chart-1: 41.1 71.2% 54.4%;
     --chart-2: 184.7 32.4% 48.6%;
     --chart-3: 227.4 15.2% 33.3%;
@@ -94,5 +96,9 @@
 @layer components {
   .container {
     @apply mx-auto px-4 md:px-6 lg:px-8 max-w-7xl w-full;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24 lg:py-32;
   }
 }

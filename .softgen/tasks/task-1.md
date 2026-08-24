@@ -14,12 +14,12 @@ Landing page complète pour LIONS SERVICES GABON avec sections Hero, Services, �
 
 ## Checklist
 - [x] Setup design system (globals.css + tailwind.config.ts)
-- [ ] Navigation fixe avec logo et liens smooth scroll
-- [ ] Hero section avec message d'accroche et CTA
-- [ ] Section Services avec 4-6 cards (inspection, métrologie, expertise)
-- [ ] Section À propos avec présentation entreprise
-- [ ] Footer avec infos contact et liens sociaux
-- [ ] Formulaire Contact avec validation et structure pour envoi email
+- [x] Navigation fixe avec logo et liens smooth scroll
+- [x] Hero section avec message d'accroche et CTA
+- [x] Section Services avec 4-6 cards (inspection, métrologie, expertise)
+- [x] Section À propos avec présentation entreprise
+- [x] Footer avec infos contact et liens sociaux
+- [x] Formulaire Contact avec validation et structure pour envoi email
 - [ ] Animations d'entrée sur scroll
 - [ ] Responsive mobile/tablet/desktop
 
