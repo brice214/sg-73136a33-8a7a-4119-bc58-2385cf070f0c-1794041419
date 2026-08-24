@@ -140,39 +140,45 @@ export default function AdministrateursPage() {
   }
 
   async function handleCreate() {
-    if (!createForm.email || !createForm.password) {
-      toast({ variant: "destructive", title: "Champs requis manquants" });
+    if (!createForm.email || !createForm.password || !createForm.full_name || !createForm.role) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Tous les champs sont requis",
+      });
       return;
     }
 
+    setCreating(true);
+
     try {
-      setCreating(true);
-
-      // 1. Créer compte Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: createForm.email,
-        password: createForm.password,
-        email_confirm: true,
+      // Appeler l'endpoint API côté serveur
+      const response = await fetch("/api/admin/create-admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: createForm.email,
+          password: createForm.password,
+          full_name: createForm.full_name,
+          role: createForm.role,
+        }),
       });
 
-      if (authError) throw authError;
+      const result = await response.json();
 
-      // 2. Insérer admin_users
-      const { error: insertError } = await supabase.from("admin_users").insert({
-        id: authData.user.id,
-        role: createForm.role,
-        full_name: createForm.full_name || null,
-      });
-
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        throw new Error(result.error || "Erreur création");
+      }
 
       toast({
-        title: "Administrateur créé",
-        description: `Email: ${createForm.email} | Mot de passe: ${createForm.password}`,
+        title: "Succès",
+        description: "Administrateur créé avec succès",
       });
 
       setCreateOpen(false);
-      setCreateForm({ email: "", role: "agasa", full_name: "", password: "" });
+      setCreateForm({ email: "", password: "", full_name: "", role: "agasa" });
       loadAdmins();
     } catch (error: any) {
       toast({
