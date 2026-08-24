@@ -1,6 +1,6 @@
 ---
 title: Modules AGASA
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [agasa, plaintes, statistiques]

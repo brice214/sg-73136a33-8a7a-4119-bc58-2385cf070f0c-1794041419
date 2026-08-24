@@ -133,6 +133,12 @@ const navItems: NavItem[] = [
     icon: DollarSign,
     roles: ["dgccrf"],
   },
+  {
+    label: "Plaintes DGCCRF",
+    href: "/admin/plaintes-dgccrf",
+    icon: AlertCircle,
+    roles: ["dgccrf"],
+  },
 
   // Mon compte (tous)
   {

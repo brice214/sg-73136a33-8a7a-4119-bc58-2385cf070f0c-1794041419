@@ -1,6 +1,6 @@
 ---
 title: Modules AGANOR
-status: todo
+status: done
 priority: high
 type: feature
 tags: [aganor, produits, scans]
