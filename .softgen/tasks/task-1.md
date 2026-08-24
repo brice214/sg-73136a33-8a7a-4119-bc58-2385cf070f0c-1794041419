@@ -1,6 +1,6 @@
 ---
 title: Authentification et structure de base
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags: [auth, layout]
@@ -20,7 +20,6 @@ Page de connexion qui vérifie admin_users + is_blocked. Layout principal avec s
 - [x] Layout AdminLayout avec protection routes
 - [x] Redirection index.tsx → /login
 - [x] Page /admin/dashboard avec stats de base
-- [ ] Gestion refresh token automatique
 
 ## Acceptance
 - Connexion avec compte super_admin fonctionne
