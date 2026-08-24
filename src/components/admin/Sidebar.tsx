@@ -99,12 +99,6 @@ const navItems: NavItem[] = [
     icon: Newspaper,
     roles: ["agasa"],
   },
-  {
-    label: "Signalements sanitaires",
-    href: "/admin/plaintes",
-    icon: Stethoscope,
-    roles: ["agasa"],
-  },
 
   // AGANOR
   {
@@ -125,12 +119,6 @@ const navItems: NavItem[] = [
     label: "Mercuriale",
     href: "/admin/mercuriale",
     icon: DollarSign,
-    roles: ["dgccrf"],
-  },
-  {
-    label: "Plaintes prix",
-    href: "/admin/plaintes",
-    icon: ShoppingCart,
     roles: ["dgccrf"],
   },
 
