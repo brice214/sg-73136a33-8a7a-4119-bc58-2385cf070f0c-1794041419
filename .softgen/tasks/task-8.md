@@ -1,25 +1,25 @@
 ---
 title: Module Bannières Publicitaires (Super Admin)
-status: todo
+status: done
 priority: medium
 type: feature
-tags: [super-admin, crud]
+tags: [super-admin, publicite, crud]
 created_by: agent
-created_at: 2026-08-24T16:50:00Z
-position: 8
+created_at: 2026-08-24T16:54:00Z
+position: 7
 ---
 
 ## Notes
-CRUD banners avec upload image (Storage bucket banners). Aperçu mobile simulé, activation/désactivation, réordonnancement.
+Super Admin gère les bannières pub de l'app mobile. Schéma DB: title, image_url (bucket 'banners'), link_url, is_active, position, sort_order, start_date, end_date.
 
 ## Checklist
-- [ ] Page /admin/bannieres avec grille cards + aperçu mobile
-- [ ] Formulaire création (title, subtitle, image upload, link_url)
-- [ ] Upload image → Storage banners
-- [ ] Toggle activation (is_active)
-- [ ] Réordonnancement drag-and-drop
-- [ ] Aperçu simulation format mobile (ratio 16:9)
+- [ ] Page /admin/publicite avec tableau banners
+- [ ] Upload image → bucket 'banners' puis image_url
+- [ ] Dialog création: title, upload, link_url, position, dates
+- [ ] Aperçu bannière (comme dans app mobile)
+- [ ] Activation/désactivation toggle (is_active)
 - [ ] Suppression avec confirmation
+- [ ] Réordonnancement drag-and-drop → sort_order
 
 ## Acceptance
 - Upload génère signed URL
