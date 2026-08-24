@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { AdminUser, AdminSession } from "@/types/admin";
+import type { AdminUser, AdminSession, AdminRole } from "@/types/admin";
 
 export const adminAuthService = {
   /**
@@ -36,6 +36,7 @@ export const adminAuthService = {
     return {
       user: {
         ...adminUser,
+        role: adminUser.role as AdminRole,
         email: authData.user.email,
       },
       accessToken: authData.session!.access_token,
@@ -70,6 +71,7 @@ export const adminAuthService = {
     return {
       user: {
         ...adminUser,
+        role: adminUser.role as AdminRole,
         email: session.user.email,
       },
       accessToken: session.access_token,
