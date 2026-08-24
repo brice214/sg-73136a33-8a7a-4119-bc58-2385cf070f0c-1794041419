@@ -13,10 +13,10 @@ position: 15
 Implémenter registre produits et statistiques scans pour AGANOR.
 
 ## Checklist
-- [ ] Créer /admin/produits.tsx (CRUD produits, barcode, manufacturer, category)
-- [ ] Créer /admin/stats-scans.tsx (métriques scans, top produits, timeline)
-- [ ] Ajouter liens sidebar pour AGANOR
-- [ ] Schéma DB: tables products + scan_history
+- [x] Créer /admin/produits.tsx (CRUD produits, barcode, manufacturer, category)
+- [x] Créer /admin/scans.tsx (métriques scans, top produits, timeline)
+- [x] Ajouter liens sidebar pour AGANOR
+- [x] Schéma DB: tables products + scan_history
 
 ## Acceptance
 - Admin AGANOR gère catalogue produits (ajouter/modifier/supprimer)
