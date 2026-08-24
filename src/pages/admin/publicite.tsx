@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Eye, EyeOff, ExternalLink } from "lucide-react";
@@ -26,24 +27,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type Banner = {
   id: number;
   title: string;
-  image_url: string | null;
+  subtitle: string;
+  image_url: string;
   link_url: string | null;
   is_active: boolean;
-  position: string;
   sort_order: number;
-  start_date: string | null;
-  end_date: string | null;
+  created_at: string;
 };
 
 export default function PublicitePage() {
@@ -59,10 +52,8 @@ export default function PublicitePage() {
 
   const [formData, setFormData] = useState({
     title: "",
+    subtitle: "",
     link_url: "",
-    position: "home_top",
-    start_date: "",
-    end_date: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -124,11 +115,9 @@ export default function PublicitePage() {
 
       const { error } = await supabase.from("banners").insert({
         title: formData.title,
+        subtitle: formData.subtitle || "",
         image_url: imageUrl,
         link_url: formData.link_url || null,
-        position: formData.position,
-        start_date: formData.start_date || null,
-        end_date: formData.end_date || null,
         is_active: true,
         sort_order: maxSortOrder + 1,
       });
@@ -172,11 +161,9 @@ export default function PublicitePage() {
         .from("banners")
         .update({
           title: formData.title,
+          subtitle: formData.subtitle || "",
           image_url: imageUrl,
           link_url: formData.link_url || null,
-          position: formData.position,
-          start_date: formData.start_date || null,
-          end_date: formData.end_date || null,
         })
         .eq("id", selectedBanner.id);
 
@@ -252,10 +239,8 @@ export default function PublicitePage() {
     setSelectedBanner(banner);
     setFormData({
       title: banner.title,
+      subtitle: banner.subtitle,
       link_url: banner.link_url || "",
-      position: banner.position,
-      start_date: banner.start_date || "",
-      end_date: banner.end_date || "",
     });
     setEditDialogOpen(true);
   }
@@ -268,21 +253,12 @@ export default function PublicitePage() {
   function resetForm() {
     setFormData({
       title: "",
+      subtitle: "",
       link_url: "",
-      position: "home_top",
-      start_date: "",
-      end_date: "",
     });
     setImageFile(null);
     setSelectedBanner(null);
   }
-
-  const positionLabels: Record<string, string> = {
-    home_top: "Accueil - Haut",
-    home_middle: "Accueil - Milieu",
-    home_bottom: "Accueil - Bas",
-    scan_result: "Résultat scan",
-  };
 
   if (session?.user.role !== "super_admin") {
     return (
@@ -327,42 +303,36 @@ export default function PublicitePage() {
             {banners.map((banner) => (
               <Card key={banner.id} className={!banner.is_active ? "opacity-60" : ""}>
                 <CardContent className="p-4 space-y-3">
-                  {banner.image_url && (
-                    <div className="relative aspect-[3/1] bg-muted rounded-lg overflow-hidden">
-                      <img
-                        src={banner.image_url}
-                        alt={banner.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <Badge
-                        variant={banner.is_active ? "default" : "secondary"}
-                        className="absolute top-2 right-2"
-                      >
-                        {banner.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  )}
+                  <div className="relative aspect-[3/1] bg-muted rounded-lg overflow-hidden">
+                    <img
+                      src={banner.image_url}
+                      alt={banner.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <Badge
+                      variant={banner.is_active ? "default" : "secondary"}
+                      className="absolute top-2 right-2"
+                    >
+                      {banner.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
                   <div>
                     <h3 className="font-semibold">{banner.title}</h3>
-                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                      <Badge variant="outline">{positionLabels[banner.position]}</Badge>
-                      {banner.link_url && (
-                        <a
-                          href={banner.link_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-primary hover:underline"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Lien
-                        </a>
-                      )}
-                    </div>
-                    {(banner.start_date || banner.end_date) && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {banner.start_date && `Du ${new Date(banner.start_date).toLocaleDateString()}`}
-                        {banner.end_date && ` au ${new Date(banner.end_date).toLocaleDateString()}`}
+                    {banner.subtitle && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {banner.subtitle}
                       </p>
+                    )}
+                    {banner.link_url && (
+                      <a
+                        href={banner.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm text-primary hover:underline mt-2"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Voir la destination
+                      </a>
                     )}
                   </div>
                   <div className="flex gap-2 pt-2">
@@ -422,6 +392,16 @@ export default function PublicitePage() {
                 />
               </div>
               <div>
+                <Label htmlFor="subtitle">Sous-titre</Label>
+                <Textarea
+                  id="subtitle"
+                  value={formData.subtitle}
+                  onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                  placeholder="Description courte..."
+                  rows={2}
+                />
+              </div>
+              <div>
                 <Label htmlFor="image">Image *</Label>
                 <Input
                   id="image"
@@ -441,44 +421,6 @@ export default function PublicitePage() {
                   onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                   placeholder="https://..."
                 />
-              </div>
-              <div>
-                <Label htmlFor="position">Position</Label>
-                <Select
-                  value={formData.position}
-                  onValueChange={(value) => setFormData({ ...formData, position: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(positionLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="start_date">Date début (optionnel)</Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="end_date">Date fin (optionnel)</Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  />
-                </div>
               </div>
             </div>
             <DialogFooter>
@@ -512,6 +454,15 @@ export default function PublicitePage() {
                 />
               </div>
               <div>
+                <Label htmlFor="edit-subtitle">Sous-titre</Label>
+                <Textarea
+                  id="edit-subtitle"
+                  value={formData.subtitle}
+                  onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div>
                 <Label htmlFor="edit-image">Nouvelle image (optionnel)</Label>
                 <Input
                   id="edit-image"
@@ -530,44 +481,6 @@ export default function PublicitePage() {
                   value={formData.link_url}
                   onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                 />
-              </div>
-              <div>
-                <Label htmlFor="edit-position">Position</Label>
-                <Select
-                  value={formData.position}
-                  onValueChange={(value) => setFormData({ ...formData, position: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(positionLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-start-date">Date début</Label>
-                  <Input
-                    id="edit-start-date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-end-date">Date fin</Label>
-                  <Input
-                    id="edit-end-date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  />
-                </div>
               </div>
             </div>
             <DialogFooter>
