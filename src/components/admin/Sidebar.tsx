@@ -137,8 +137,8 @@ const navItems: NavItem[] = [
   // Mon compte (tous)
   {
     label: "Mon compte",
-    href: "/admin/mon-compte",
-    icon: UserCircle,
+    href: "/admin/compte",
+    icon: User,
     roles: ["super_admin", "agasa", "aganor", "dgccrf"],
   },
 ];
