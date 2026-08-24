@@ -83,6 +83,7 @@ export type Database = {
           longitude: number | null
           merchant: string | null
           official_price: number | null
+          photo_urls: string[]
           practiced_price: number | null
           product: string
           status: string
@@ -99,6 +100,7 @@ export type Database = {
           longitude?: number | null
           merchant?: string | null
           official_price?: number | null
+          photo_urls?: string[]
           practiced_price?: number | null
           product: string
           status?: string
@@ -115,6 +117,7 @@ export type Database = {
           longitude?: number | null
           merchant?: string | null
           official_price?: number | null
+          photo_urls?: string[]
           practiced_price?: number | null
           product?: string
           status?: string
@@ -164,6 +167,7 @@ export type Database = {
       }
       news: {
         Row: {
+          content: string | null
           excerpt: string
           id: number
           published_date: string
@@ -174,6 +178,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          content?: string | null
           excerpt: string
           id?: never
           published_date?: string
@@ -184,6 +189,7 @@ export type Database = {
           title: string
         }
         Update: {
+          content?: string | null
           excerpt?: string
           id?: never
           published_date?: string
@@ -350,6 +356,32 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      saved_articles: {
+        Row: {
+          created_at: string
+          news_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          news_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          news_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_articles_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "news"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scan_history: {
         Row: {
