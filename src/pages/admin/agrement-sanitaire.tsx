@@ -12,29 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 
-interface FormData {
-  etablissement: string;
-  abreviation: string;
-  adresse_bp: string;
-  telephone: string;
-  email: string;
-  objet_social: string;
-  ville: string;
-  arrondissement: string;
-  quartier: string;
-  activites: string;
-  numero_agrement: string;
-  validite: string;
-  categorie: "A" | "B" | "C";
-  classe: "A" | "B" | "C";
-}
-
 export default function AgrementSanitaire() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("formulaire");
   const [mounted, setMounted] = useState(false);
-  
-  // Formulaire
+
+  // États formulaire individuels
   const [etablissement, setEtablissement] = useState("");
   const [abreviation, setAbreviation] = useState("");
   const [adresseBP, setAdresseBP] = useState("");
@@ -47,27 +30,37 @@ export default function AgrementSanitaire() {
   const [activites, setActivites] = useState("");
   const [numeroAgrement, setNumeroAgrement] = useState("");
   const [validite, setValidite] = useState("");
-  const [categorie, setCategorie] = useState("A");
-  const [classe, setClasse] = useState("A");
+  const [categorie, setCategorie] = useState<"A" | "B" | "C">("A");
+  const [classe, setClasse] = useState<"A" | "B" | "C">("A");
 
-  // Logos
+  const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
+
+- Vu la Constitution ;
+- Vu la Loi n°021/2019 du 16 décembre 2019 relative à la sécurité sanitaire des aliments ;
+- Vu le Décret n°00162/PR/MAEP du 28 février 2020 portant organisation et fonctionnement de l'AGASA ;
+
+Accorde le présent AGRÉMENT SANITAIRE à :
+
+Établissement : {{etablissement}} ({{abreviation}})
+Adresse : {{adresse_bp}}
+Ville : {{ville}}, Arrondissement : {{arrondissement}}, Quartier : {{quartier}}
+Téléphone : {{telephone}}
+Email : {{email}}
+Objet social : {{objet_social}}
+
+Activité(s) autorisée(s) : {{activites}}
+
+N° d'agrément : {{numero_agrement}}
+Validité : {{validite}}
+
+Fait à Libreville, le [DATE]
+
+Le Directeur Général de l'AGASA`);
+
   const [logoAgasa, setLogoAgasa] = useState<string | null>(null);
   const [sceauRepublique, setSceauRepublique] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSceau, setUploadingSceau] = useState(false);
-
-  const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
-
--Vu la constitution,
--Vu la loi n°...
-
-DECIDE
-
-Article 1: L'établissement {{etablissement}} ({{abreviation}}) situé à {{ville}}, arrondissement {{arrondissement}}, quartier {{quartier}}, est autorisé à exercer les activités suivantes: {{activites}}.
-
-Article 2: Le présent agrément sanitaire est valable jusqu'au {{validite}}.
-
-Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
 
   useEffect(() => {
     setMounted(true);
@@ -76,9 +69,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
 
   async function loadLogos() {
     try {
-      // Récupérer les URLs publiques des logos depuis Supabase Storage
       const { data: logoList } = await supabase.storage.from("agasa-documents").list("logos");
-      
+
       if (logoList) {
         const agasaFile = logoList.find((f) => f.name === "logo-agasa.png");
         const sceauFile = logoList.find((f) => f.name === "sceau-republique.png");
@@ -111,14 +103,12 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
       const fileName = type === "agasa" ? "logo-agasa.png" : "sceau-republique.png";
       const filePath = `logos/${fileName}`;
 
-      // Upload vers Supabase Storage (bucket agasa-documents)
       const { error: uploadError } = await supabase.storage
         .from("agasa-documents")
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Récupérer l'URL publique
       const { data } = supabase.storage.from("agasa-documents").getPublicUrl(filePath);
 
       if (type === "agasa") {
@@ -138,36 +128,34 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
 
   function replaceVariables(text: string): string {
     return text
-      .replace(/\{\{etablissement\}\}/g, formData.etablissement)
-      .replace(/\{\{abreviation\}\}/g, formData.abreviation)
-      .replace(/\{\{adresse_bp\}\}/g, formData.adresse_bp)
-      .replace(/\{\{telephone\}\}/g, formData.telephone)
-      .replace(/\{\{email\}\}/g, formData.email)
-      .replace(/\{\{objet_social\}\}/g, formData.objet_social)
-      .replace(/\{\{ville\}\}/g, formData.ville)
-      .replace(/\{\{arrondissement\}\}/g, formData.arrondissement)
-      .replace(/\{\{quartier\}\}/g, formData.quartier)
-      .replace(/\{\{activites\}\}/g, formData.activites)
-      .replace(/\{\{numero_agrement\}\}/g, formData.numero_agrement)
-      .replace(/\{\{validite\}\}/g, formData.validite)
-      .replace(/\{\{categorie\}\}/g, formData.categorie)
-      .replace(/\{\{classe\}\}/g, formData.classe)
+      .replace(/\{\{etablissement\}\}/g, etablissement)
+      .replace(/\{\{abreviation\}\}/g, abreviation)
+      .replace(/\{\{adresse_bp\}\}/g, adresseBP)
+      .replace(/\{\{telephone\}\}/g, telephone)
+      .replace(/\{\{email\}\}/g, email)
+      .replace(/\{\{objet_social\}\}/g, objetSocial)
+      .replace(/\{\{ville\}\}/g, ville)
+      .replace(/\{\{arrondissement\}\}/g, arrondissement)
+      .replace(/\{\{quartier\}\}/g, quartier)
+      .replace(/\{\{activites\}\}/g, activites)
+      .replace(/\{\{numero_agrement\}\}/g, numeroAgrement)
+      .replace(/\{\{validite\}\}/g, validite)
+      .replace(/\{\{categorie\}\}/g, categorie)
+      .replace(/\{\{classe\}\}/g, classe)
       .replace(/\[DATE\]/g, new Date().toLocaleDateString("fr-FR"));
   }
 
   async function generatePDF() {
-    if (!formData.etablissement || !formData.numero_agrement) {
+    if (!etablissement || !numeroAgrement) {
       toast({ variant: "destructive", title: "Erreur", description: "Établissement et N° agrément requis" });
       return;
     }
 
     try {
-      // PDF en paysage (landscape)
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
 
-      // Header - Logos et titre ministère
       if (logoAgasa) {
         const imgLogo = await fetch(logoAgasa).then((r) => r.blob()).then((b) => URL.createObjectURL(b));
         doc.addImage(imgLogo, "PNG", 15, 10, 40, 20);
@@ -178,40 +166,34 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
         doc.addImage(imgSceau, "PNG", pageWidth - 55, 10, 40, 20);
       }
 
-      // Titre ministère (centré)
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION", pageWidth / 2, 20, { align: "center" });
 
-      // Ligne de séparation
       doc.setDrawColor(0, 100, 0);
       doc.setLineWidth(0.5);
       doc.line(15, 35, pageWidth - 15, 35);
 
-      // Titre "AGRÉMENT SANITAIRE" avec Catégorie et Classe
       doc.setFontSize(18);
       doc.setFont("helvetica", "bold");
       doc.text("AGRÉMENT SANITAIRE", pageWidth / 2, 45, { align: "center" });
 
-      // Catégorie (gauche)
       doc.setFontSize(12);
       doc.text("Catégorie", 30, 50);
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
-      doc.text(formData.categorie, 35, 58);
+      doc.text(categorie, 35, 58);
 
-      // Classe (droite)
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.text("Classe", pageWidth - 45, 50);
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
-      doc.text(formData.classe, pageWidth - 40, 58);
+      doc.text(classe, pageWidth - 40, 58);
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text("Niveau sanitaire", pageWidth - 52, 63);
 
-      // Contenu légal avec variables remplacées
       const contenu = replaceVariables(contenuLegal);
       const lines = doc.splitTextToSize(contenu, pageWidth - 40);
 
@@ -228,7 +210,6 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
         yPosition += 6;
       });
 
-      // Ouvrir le PDF dans le navigateur au lieu de le télécharger
       const pdfBlob = doc.output("blob");
       const pdfUrl = URL.createObjectURL(pdfBlob);
       window.open(pdfUrl, "_blank");
@@ -272,8 +253,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="etablissement">Établissement/Entreprise *</Label>
                     <Input
                       id="etablissement"
-                      value={formData.etablissement}
-                      onChange={(e) => setFormData({ ...formData, etablissement: e.target.value })}
+                      value={etablissement}
+                      onChange={(e) => setEtablissement(e.target.value)}
                       placeholder="Nom complet de l'établissement"
                     />
                   </div>
@@ -282,8 +263,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="abreviation">Abréviation</Label>
                     <Input
                       id="abreviation"
-                      value={formData.abreviation}
-                      onChange={(e) => setFormData({ ...formData, abreviation: e.target.value })}
+                      value={abreviation}
+                      onChange={(e) => setAbreviation(e.target.value)}
                       placeholder="ex: SARL, SA"
                     />
                   </div>
@@ -292,8 +273,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="adresse_bp">Adresse BP</Label>
                     <Input
                       id="adresse_bp"
-                      value={formData.adresse_bp}
-                      onChange={(e) => setFormData({ ...formData, adresse_bp: e.target.value })}
+                      value={adresseBP}
+                      onChange={(e) => setAdresseBP(e.target.value)}
                       placeholder="BP 1234"
                     />
                   </div>
@@ -302,8 +283,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="telephone">Téléphone</Label>
                     <Input
                       id="telephone"
-                      value={formData.telephone}
-                      onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                      value={telephone}
+                      onChange={(e) => setTelephone(e.target.value)}
                       placeholder="+241 XX XX XX XX"
                     />
                   </div>
@@ -313,8 +294,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Input
                       id="email"
                       type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="contact@entreprise.ga"
                     />
                   </div>
@@ -323,8 +304,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="ville">Ville</Label>
                     <Input
                       id="ville"
-                      value={formData.ville}
-                      onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
+                      value={ville}
+                      onChange={(e) => setVille(e.target.value)}
                       placeholder="Libreville"
                     />
                   </div>
@@ -333,8 +314,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="arrondissement">Arrondissement</Label>
                     <Input
                       id="arrondissement"
-                      value={formData.arrondissement}
-                      onChange={(e) => setFormData({ ...formData, arrondissement: e.target.value })}
+                      value={arrondissement}
+                      onChange={(e) => setArrondissement(e.target.value)}
                       placeholder="1er arrondissement"
                     />
                   </div>
@@ -343,8 +324,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="quartier">Quartier</Label>
                     <Input
                       id="quartier"
-                      value={formData.quartier}
-                      onChange={(e) => setFormData({ ...formData, quartier: e.target.value })}
+                      value={quartier}
+                      onChange={(e) => setQuartier(e.target.value)}
                       placeholder="Akébé"
                     />
                   </div>
@@ -353,8 +334,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="objet_social">Objet social</Label>
                     <Textarea
                       id="objet_social"
-                      value={formData.objet_social}
-                      onChange={(e) => setFormData({ ...formData, objet_social: e.target.value })}
+                      value={objetSocial}
+                      onChange={(e) => setObjetSocial(e.target.value)}
                       placeholder="Description de l'activité principale"
                       rows={2}
                     />
@@ -364,8 +345,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="activites">Activité(s) autorisée(s)</Label>
                     <Textarea
                       id="activites"
-                      value={formData.activites}
-                      onChange={(e) => setFormData({ ...formData, activites: e.target.value })}
+                      value={activites}
+                      onChange={(e) => setActivites(e.target.value)}
                       placeholder="Liste des activités autorisées"
                       rows={3}
                     />
@@ -375,8 +356,8 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="numero_agrement">N° d'agrément *</Label>
                     <Input
                       id="numero_agrement"
-                      value={formData.numero_agrement}
-                      onChange={(e) => setFormData({ ...formData, numero_agrement: e.target.value })}
+                      value={numeroAgrement}
+                      onChange={(e) => setNumeroAgrement(e.target.value)}
                       placeholder="N°AGASA/2024/XXX"
                     />
                   </div>
@@ -385,15 +366,15 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     <Label htmlFor="validite">Validité</Label>
                     <Input
                       id="validite"
-                      value={formData.validite}
-                      onChange={(e) => setFormData({ ...formData, validite: e.target.value })}
+                      value={validite}
+                      onChange={(e) => setValidite(e.target.value)}
                       placeholder="31/12/2025"
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="categorie">Catégorie</Label>
-                    <Select value={formData.categorie} onValueChange={(val: any) => setFormData({ ...formData, categorie: val })}>
+                    <Select value={categorie} onValueChange={(val: "A" | "B" | "C") => setCategorie(val)}>
                       <SelectTrigger id="categorie">
                         <SelectValue />
                       </SelectTrigger>
@@ -407,7 +388,7 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
 
                   <div>
                     <Label htmlFor="classe">Classe</Label>
-                    <Select value={formData.classe} onValueChange={(val: any) => setFormData({ ...formData, classe: val })}>
+                    <Select value={classe} onValueChange={(val: "A" | "B" | "C") => setClasse(val)}>
                       <SelectTrigger id="classe">
                         <SelectValue />
                       </SelectTrigger>
@@ -458,14 +439,13 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  {/* Logo AGASA */}
                   <div className="space-y-4">
                     <div>
                       <Label>Logo AGASA</Label>
                       <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
                     </div>
 
-                    {logoAgasa && (
+                    {mounted && logoAgasa && (
                       <div className="border rounded-lg p-4 bg-muted/20">
                         <img src={logoAgasa} alt="Logo AGASA" className="max-h-32 mx-auto" />
                       </div>
@@ -497,14 +477,13 @@ Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
                     </Button>
                   </div>
 
-                  {/* Sceau République */}
                   <div className="space-y-4">
                     <div>
                       <Label>Sceau de la République</Label>
                       <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
                     </div>
 
-                    {sceauRepublique && (
+                    {mounted && sceauRepublique && (
                       <div className="border rounded-lg p-4 bg-muted/20">
                         <img src={sceauRepublique} alt="Sceau République" className="max-h-32 mx-auto" />
                       </div>
