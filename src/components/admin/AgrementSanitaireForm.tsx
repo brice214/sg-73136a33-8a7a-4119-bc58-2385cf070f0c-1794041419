@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function AgrementSanitaireForm() {
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("formulaire");
 
   const [etablissement, setEtablissement] = useState("");
@@ -60,8 +61,22 @@ Le Directeur Général de l'AGASA`);
   const [uploadingSceau, setUploadingSceau] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     loadLogos();
   }, []);
+
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Agrément Sanitaire</h1>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-muted-foreground">Chargement...</div>
+        </div>
+      </div>
+    );
+  }
 
   async function loadLogos() {
     try {
