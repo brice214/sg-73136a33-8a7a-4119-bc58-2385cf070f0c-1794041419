@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type News = {
-  id: string;
+  id: number;
   title: string;
   excerpt: string;
   content: string;
@@ -22,7 +22,6 @@ type News = {
   source: string;
   sort_order: number;
   published_date: string;
-  created_at: string;
 };
 
 export default function ActualitesDGCCRF() {
@@ -132,7 +131,7 @@ export default function ActualitesDGCCRF() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: number) {
     if (!confirm("Confirmer la suppression de cette actualité ?")) return;
 
     try {
