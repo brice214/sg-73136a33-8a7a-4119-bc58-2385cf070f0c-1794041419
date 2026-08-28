@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, Plus, Pencil, Trash2, List, FolderTree } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type MercurialeProduct = {
   id: number;
@@ -58,6 +59,15 @@ export default function MercurialeForm() {
 
   const [editingProduct, setEditingProduct] = useState<MercurialeProduct | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [groupFormMode, setGroupFormMode] = useState<"group" | "category" | "subcategory">("group");
+  
+  // États pour le formulaire de création rapide
+  const [quickGroupName, setQuickGroupName] = useState("");
+  const [quickCategoryName, setQuickCategoryName] = useState("");
+  const [quickSubcategoryName, setQuickSubcategoryName] = useState("");
+  const [quickGroupId, setQuickGroupId] = useState<number | null>(null);
+  const [quickCategoryId, setQuickCategoryId] = useState<number | null>(null);
 
   const [formProduct, setFormProduct] = useState("");
   const [formUnit, setFormUnit] = useState("kg");
@@ -192,6 +202,97 @@ export default function MercurialeForm() {
     loadProducts();
   }
 
+  function openGroupDialog() {
+    setGroupFormMode("group");
+    setQuickGroupName("");
+    setQuickCategoryName("");
+    setQuickSubcategoryName("");
+    setQuickGroupId(null);
+    setQuickCategoryId(null);
+    setIsGroupDialogOpen(true);
+  }
+
+  async function handleQuickCreate() {
+    try {
+      if (groupFormMode === "group") {
+        if (!quickGroupName.trim()) {
+          toast({ variant: "destructive", title: "Erreur", description: "Le nom du groupe est requis" });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("mercuriale_groups")
+          .insert([{ name: quickGroupName.trim(), sort_order: groups.length }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        toast({ title: "Groupe créé avec succès" });
+        loadGroups();
+        
+        // Passer à la création de catégorie
+        setQuickGroupId(data.id);
+        setGroupFormMode("category");
+        
+      } else if (groupFormMode === "category") {
+        if (!quickCategoryName.trim() || !quickGroupId) {
+          toast({ variant: "destructive", title: "Erreur", description: "Le nom de la catégorie est requis" });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("mercuriale_categories")
+          .insert([{ 
+            name: quickCategoryName.trim(), 
+            group_id: quickGroupId,
+            sort_order: categories.filter(c => c.group_id === quickGroupId).length 
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        toast({ title: "Catégorie créée avec succès" });
+        loadCategories();
+        
+        // Passer à la création de sous-catégorie
+        setQuickCategoryId(data.id);
+        setGroupFormMode("subcategory");
+        
+      } else if (groupFormMode === "subcategory") {
+        if (!quickSubcategoryName.trim() || !quickCategoryId) {
+          toast({ variant: "destructive", title: "Erreur", description: "Le nom de la sous-catégorie est requis" });
+          return;
+        }
+
+        const { error } = await supabase
+          .from("mercuriale_subcategories")
+          .insert([{ 
+            name: quickSubcategoryName.trim(), 
+            category_id: quickCategoryId,
+            sort_order: subcategories.filter(s => s.category_id === quickCategoryId).length 
+          }]);
+
+        if (error) throw error;
+        
+        toast({ title: "Sous-catégorie créée avec succès" });
+        loadSubcategories();
+        setIsGroupDialogOpen(false);
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
+    }
+  }
+
+  function skipToNext() {
+    if (groupFormMode === "group") {
+      setGroupFormMode("category");
+    } else if (groupFormMode === "category") {
+      setGroupFormMode("subcategory");
+    }
+  }
+
   const filteredCategories = categories.filter((c) => c.group_id === formGroupId);
   const filteredSubcategories = subcategories.filter((s) => s.category_id === formCategoryId);
 
@@ -231,14 +332,17 @@ export default function MercurialeForm() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-          <DollarSign className="h-8 w-8 text-primary" />
-          Mercuriale des prix
-        </h1>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un produit
-        </Button>
+        <h1 className="text-3xl font-bold text-foreground">Mercuriale des prix</h1>
+        <div className="flex gap-2">
+          <Button onClick={openGroupDialog} variant="outline" className="gap-2">
+            <FolderTree className="h-4 w-4" />
+            Créer un groupe
+          </Button>
+          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Ajouter un produit
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -503,6 +607,95 @@ export default function MercurialeForm() {
           </Card>
         </div>
       )}
+
+      {/* Dialogue de création rapide Groupe → Catégorie → Sous-catégorie */}
+      <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {groupFormMode === "group" && "Créer un groupe"}
+              {groupFormMode === "category" && "Créer une catégorie"}
+              {groupFormMode === "subcategory" && "Créer une sous-catégorie"}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {groupFormMode === "group" && "Étape 1/3 : Créez d'abord un groupe"}
+              {groupFormMode === "category" && "Étape 2/3 : Créez une catégorie dans le groupe"}
+              {groupFormMode === "subcategory" && "Étape 3/3 : Créez une sous-catégorie dans la catégorie"}
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {groupFormMode === "group" && (
+              <div>
+                <Label>Nom du groupe *</Label>
+                <Input 
+                  value={quickGroupName} 
+                  onChange={(e) => setQuickGroupName(e.target.value)} 
+                  placeholder="Ex: Fruits et Légumes" 
+                />
+              </div>
+            )}
+
+            {groupFormMode === "category" && (
+              <div className="space-y-4">
+                <div className="rounded-lg bg-muted p-3">
+                  <p className="text-sm">
+                    <span className="font-medium">Groupe sélectionné :</span>{" "}
+                    {groups.find(g => g.id === quickGroupId)?.name}
+                  </p>
+                </div>
+                <div>
+                  <Label>Nom de la catégorie *</Label>
+                  <Input 
+                    value={quickCategoryName} 
+                    onChange={(e) => setQuickCategoryName(e.target.value)} 
+                    placeholder="Ex: Légumes" 
+                  />
+                </div>
+              </div>
+            )}
+
+            {groupFormMode === "subcategory" && (
+              <div className="space-y-4">
+                <div className="rounded-lg bg-muted p-3 space-y-1">
+                  <p className="text-sm">
+                    <span className="font-medium">Groupe :</span>{" "}
+                    {groups.find(g => g.id === quickGroupId)?.name}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Catégorie :</span>{" "}
+                    {categories.find(c => c.id === quickCategoryId)?.name}
+                  </p>
+                </div>
+                <div>
+                  <Label>Nom de la sous-catégorie *</Label>
+                  <Input 
+                    value={quickSubcategoryName} 
+                    onChange={(e) => setQuickSubcategoryName(e.target.value)} 
+                    placeholder="Ex: Légumes feuilles" 
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between gap-2">
+            <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)}>
+              Annuler
+            </Button>
+            <div className="flex gap-2">
+              {(groupFormMode === "category" || groupFormMode === "subcategory") && (
+                <Button variant="outline" onClick={skipToNext}>
+                  Passer
+                </Button>
+              )}
+              <Button onClick={handleQuickCreate}>
+                {groupFormMode === "subcategory" ? "Terminer" : "Suivant"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
