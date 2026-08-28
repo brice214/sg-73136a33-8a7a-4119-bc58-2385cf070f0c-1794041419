@@ -23,6 +23,7 @@ import {
   User,
   FileText,
   FolderTree,
+  ScanLine,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -122,21 +123,21 @@ const navItems: NavItem[] = [
 
   // AGANOR
   {
-    label: "Registre produits",
-    href: "/admin/produits",
+    label: "Mes produits",
+    href: "/aganor/admin/produits",
     icon: Package,
     roles: ["aganor"],
   },
   {
-    label: "Mes actualités",
-    href: "/admin/actualites-aganor",
-    icon: Newspaper,
+    label: "Historique scans",
+    href: "/aganor/admin/scans",
+    icon: ScanLine,
     roles: ["aganor"],
   },
   {
-    label: "Statistiques scans",
-    href: "/admin/scans",
-    icon: BarChart3,
+    label: "Mes actualités",
+    href: "/aganor/admin/actualites-aganor",
+    icon: Newspaper,
     roles: ["aganor"],
   },
 
