@@ -79,8 +79,8 @@ export default function Produits() {
       const { data, error } = await supabase.from("products").select("*").order("name", { ascending: true });
 
       if (error) throw error;
-      setProducts(data || []);
-      setFilteredProducts(data || []);
+      setProducts((data || []) as Product[]);
+      setFilteredProducts((data || []) as Product[]);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
     } finally {

@@ -402,6 +402,7 @@ export type Database = {
           category: string | null
           image_url: string | null
           ingredients: string[] | null
+          institution: string
           name: string
           nutri_score: string | null
           origin: string | null
@@ -417,6 +418,7 @@ export type Database = {
           category?: string | null
           image_url?: string | null
           ingredients?: string[] | null
+          institution: string
           name: string
           nutri_score?: string | null
           origin?: string | null
@@ -432,6 +434,7 @@ export type Database = {
           category?: string | null
           image_url?: string | null
           ingredients?: string[] | null
+          institution?: string
           name?: string
           nutri_score?: string | null
           origin?: string | null
