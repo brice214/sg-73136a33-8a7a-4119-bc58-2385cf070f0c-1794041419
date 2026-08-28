@@ -224,301 +224,304 @@ Le Directeur Général de l'AGASA`);
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-primary">Agrément Sanitaire</h1>
-            <p className="text-muted-foreground">Générer des agréments sanitaires officiels</p>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground">Agrément Sanitaire</h1>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="formulaire">
-              <FileText className="h-4 w-4 mr-2" />
-              Formulaire
-            </TabsTrigger>
-            <TabsTrigger value="parametres">
-              <Settings className="h-4 w-4 mr-2" />
-              Paramètres
-            </TabsTrigger>
-          </TabsList>
+        {!mounted ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-muted-foreground">Chargement...</div>
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="formulaire">
+                <FileText className="h-4 w-4 mr-2" />
+                Formulaire
+              </TabsTrigger>
+              <TabsTrigger value="parametres">
+                <Settings className="h-4 w-4 mr-2" />
+                Paramètres
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="formulaire" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations de l'opérateur</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="etablissement">Établissement/Entreprise *</Label>
-                    <Input
-                      id="etablissement"
-                      value={etablissement}
-                      onChange={(e) => setEtablissement(e.target.value)}
-                      placeholder="Nom complet de l'établissement"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="abreviation">Abréviation</Label>
-                    <Input
-                      id="abreviation"
-                      value={abreviation}
-                      onChange={(e) => setAbreviation(e.target.value)}
-                      placeholder="ex: SARL, SA"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="adresse_bp">Adresse BP</Label>
-                    <Input
-                      id="adresse_bp"
-                      value={adresseBP}
-                      onChange={(e) => setAdresseBP(e.target.value)}
-                      placeholder="BP 1234"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="telephone">Téléphone</Label>
-                    <Input
-                      id="telephone"
-                      value={telephone}
-                      onChange={(e) => setTelephone(e.target.value)}
-                      placeholder="+241 XX XX XX XX"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="contact@entreprise.ga"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="ville">Ville</Label>
-                    <Input
-                      id="ville"
-                      value={ville}
-                      onChange={(e) => setVille(e.target.value)}
-                      placeholder="Libreville"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="arrondissement">Arrondissement</Label>
-                    <Input
-                      id="arrondissement"
-                      value={arrondissement}
-                      onChange={(e) => setArrondissement(e.target.value)}
-                      placeholder="1er arrondissement"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="quartier">Quartier</Label>
-                    <Input
-                      id="quartier"
-                      value={quartier}
-                      onChange={(e) => setQuartier(e.target.value)}
-                      placeholder="Akébé"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label htmlFor="objet_social">Objet social</Label>
-                    <Textarea
-                      id="objet_social"
-                      value={objetSocial}
-                      onChange={(e) => setObjetSocial(e.target.value)}
-                      placeholder="Description de l'activité principale"
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label htmlFor="activites">Activité(s) autorisée(s)</Label>
-                    <Textarea
-                      id="activites"
-                      value={activites}
-                      onChange={(e) => setActivites(e.target.value)}
-                      placeholder="Liste des activités autorisées"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="numero_agrement">N° d'agrément *</Label>
-                    <Input
-                      id="numero_agrement"
-                      value={numeroAgrement}
-                      onChange={(e) => setNumeroAgrement(e.target.value)}
-                      placeholder="N°AGASA/2024/XXX"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="validite">Validité</Label>
-                    <Input
-                      id="validite"
-                      value={validite}
-                      onChange={(e) => setValidite(e.target.value)}
-                      placeholder="31/12/2025"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="categorie">Catégorie</Label>
-                    <Select value={categorie} onValueChange={(val: "A" | "B" | "C") => setCategorie(val)}>
-                      <SelectTrigger id="categorie">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A">A</SelectItem>
-                        <SelectItem value="B">B</SelectItem>
-                        <SelectItem value="C">C</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="classe">Classe</Label>
-                    <Select value={classe} onValueChange={(val: "A" | "B" | "C") => setClasse(val)}>
-                      <SelectTrigger id="classe">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A">A</SelectItem>
-                        <SelectItem value="B">B</SelectItem>
-                        <SelectItem value="C">C</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Contenu légal du document</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {`Variables disponibles: {{etablissement}}, {{abreviation}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}`}
-                  </p>
-                  <Textarea
-                    value={contenuLegal}
-                    onChange={(e) => setContenuLegal(e.target.value)}
-                    rows={20}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <Button onClick={generatePDF} size="lg" className="w-full">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Générer le PDF (paysage)
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="parametres" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des logos officiels</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
+            <TabsContent value="formulaire" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informations de l'opérateur</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <Label>Logo AGASA</Label>
-                      <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
+                      <Label htmlFor="etablissement">Établissement/Entreprise *</Label>
+                      <Input
+                        id="etablissement"
+                        value={etablissement}
+                        onChange={(e) => setEtablissement(e.target.value)}
+                        placeholder="Nom complet de l'établissement"
+                      />
                     </div>
 
-                    {mounted && logoAgasa && (
-                      <div className="border rounded-lg p-4 bg-muted/20">
-                        <img src={logoAgasa} alt="Logo AGASA" className="max-h-32 mx-auto" />
-                      </div>
-                    )}
+                    <div>
+                      <Label htmlFor="abreviation">Abréviation</Label>
+                      <Input
+                        id="abreviation"
+                        value={abreviation}
+                        onChange={(e) => setAbreviation(e.target.value)}
+                        placeholder="ex: SARL, SA"
+                      />
+                    </div>
 
                     <div>
+                      <Label htmlFor="adresse_bp">Adresse BP</Label>
                       <Input
-                        id="logo-agasa-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleUploadLogo(file, "agasa");
-                        }}
+                        id="adresse_bp"
+                        value={adresseBP}
+                        onChange={(e) => setAdresseBP(e.target.value)}
+                        placeholder="BP 1234"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="telephone">Téléphone</Label>
+                      <Input
+                        id="telephone"
+                        value={telephone}
+                        onChange={(e) => setTelephone(e.target.value)}
+                        placeholder="+241 XX XX XX XX"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="contact@entreprise.ga"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="ville">Ville</Label>
+                      <Input
+                        id="ville"
+                        value={ville}
+                        onChange={(e) => setVille(e.target.value)}
+                        placeholder="Libreville"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="arrondissement">Arrondissement</Label>
+                      <Input
+                        id="arrondissement"
+                        value={arrondissement}
+                        onChange={(e) => setArrondissement(e.target.value)}
+                        placeholder="1er arrondissement"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="quartier">Quartier</Label>
+                      <Input
+                        id="quartier"
+                        value={quartier}
+                        onChange={(e) => setQuartier(e.target.value)}
+                        placeholder="Akébé"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="objet_social">Objet social</Label>
+                      <Textarea
+                        id="objet_social"
+                        value={objetSocial}
+                        onChange={(e) => setObjetSocial(e.target.value)}
+                        placeholder="Description de l'activité principale"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="activites">Activité(s) autorisée(s)</Label>
+                      <Textarea
+                        id="activites"
+                        value={activites}
+                        onChange={(e) => setActivites(e.target.value)}
+                        placeholder="Liste des activités autorisées"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="numero_agrement">N° d'agrément *</Label>
+                      <Input
+                        id="numero_agrement"
+                        value={numeroAgrement}
+                        onChange={(e) => setNumeroAgrement(e.target.value)}
+                        placeholder="N°AGASA/2024/XXX"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="validite">Validité</Label>
+                      <Input
+                        id="validite"
+                        value={validite}
+                        onChange={(e) => setValidite(e.target.value)}
+                        placeholder="31/12/2025"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="categorie">Catégorie</Label>
+                      <Select value={categorie} onValueChange={(val: "A" | "B" | "C") => setCategorie(val)}>
+                        <SelectTrigger id="categorie">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A</SelectItem>
+                          <SelectItem value="B">B</SelectItem>
+                          <SelectItem value="C">C</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="classe">Classe</Label>
+                      <Select value={classe} onValueChange={(val: "A" | "B" | "C") => setClasse(val)}>
+                        <SelectTrigger id="classe">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">A</SelectItem>
+                          <SelectItem value="B">B</SelectItem>
+                          <SelectItem value="C">C</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contenu légal du document</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      {`Variables disponibles: {{etablissement}}, {{abreviation}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}`}
+                    </p>
+                    <Textarea
+                      value={contenuLegal}
+                      onChange={(e) => setContenuLegal(e.target.value)}
+                      rows={20}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <Button onClick={generatePDF} size="lg" className="w-full">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Générer le PDF (paysage)
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="parametres" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gestion des logos officiels</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Logo AGASA</Label>
+                        <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
+                      </div>
+
+                      {mounted && logoAgasa && (
+                        <div className="border rounded-lg p-4 bg-muted/20">
+                          <img src={logoAgasa} alt="Logo AGASA" className="max-h-32 mx-auto" />
+                        </div>
+                      )}
+
+                      <div>
+                        <Input
+                          id="logo-agasa-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleUploadLogo(file, "agasa");
+                          }}
+                          disabled={uploadingLogo}
+                          className="cursor-pointer"
+                        />
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
                         disabled={uploadingLogo}
-                        className="cursor-pointer"
-                      />
+                        onClick={() => document.getElementById("logo-agasa-upload")?.click()}
+                        className="w-full"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploadingLogo ? "Upload en cours..." : "Changer le logo AGASA"}
+                      </Button>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={uploadingLogo}
-                      onClick={() => document.getElementById("logo-agasa-upload")?.click()}
-                      className="w-full"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploadingLogo ? "Upload en cours..." : "Changer le logo AGASA"}
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Sceau de la République</Label>
-                      <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
-                    </div>
-
-                    {mounted && sceauRepublique && (
-                      <div className="border rounded-lg p-4 bg-muted/20">
-                        <img src={sceauRepublique} alt="Sceau République" className="max-h-32 mx-auto" />
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Sceau de la République</Label>
+                        <p className="text-sm text-muted-foreground mb-3">Format PNG recommandé (transparent)</p>
                       </div>
-                    )}
 
-                    <div>
-                      <Input
-                        id="sceau-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleUploadLogo(file, "sceau");
-                        }}
+                      {mounted && sceauRepublique && (
+                        <div className="border rounded-lg p-4 bg-muted/20">
+                          <img src={sceauRepublique} alt="Sceau République" className="max-h-32 mx-auto" />
+                        </div>
+                      )}
+
+                      <div>
+                        <Input
+                          id="sceau-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleUploadLogo(file, "sceau");
+                          }}
+                          disabled={uploadingSceau}
+                          className="cursor-pointer"
+                        />
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
                         disabled={uploadingSceau}
-                        className="cursor-pointer"
-                      />
+                        onClick={() => document.getElementById("sceau-upload")?.click()}
+                        className="w-full"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploadingSceau ? "Upload en cours..." : "Changer le sceau"}
+                      </Button>
                     </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={uploadingSceau}
-                      onClick={() => document.getElementById("sceau-upload")?.click()}
-                      className="w-full"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploadingSceau ? "Upload en cours..." : "Changer le sceau"}
-                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </AdminLayout>
   );
