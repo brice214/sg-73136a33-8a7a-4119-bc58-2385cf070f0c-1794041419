@@ -32,53 +32,45 @@ interface FormData {
 export default function AgrementSanitaire() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("formulaire");
-  const [formData, setFormData] = useState<FormData>({
-    etablissement: "",
-    abreviation: "",
-    adresse_bp: "",
-    telephone: "",
-    email: "",
-    objet_social: "",
-    ville: "",
-    arrondissement: "",
-    quartier: "",
-    activites: "",
-    numero_agrement: "",
-    validite: "",
-    categorie: "A",
-    classe: "A",
-  });
+  const [mounted, setMounted] = useState(false);
+  
+  // Formulaire
+  const [etablissement, setEtablissement] = useState("");
+  const [abreviation, setAbreviation] = useState("");
+  const [adresseBP, setAdresseBP] = useState("");
+  const [telephone, setTelephone] = useState("");
+  const [email, setEmail] = useState("");
+  const [objetSocial, setObjetSocial] = useState("");
+  const [ville, setVille] = useState("");
+  const [arrondissement, setArrondissement] = useState("");
+  const [quartier, setQuartier] = useState("");
+  const [activites, setActivites] = useState("");
+  const [numeroAgrement, setNumeroAgrement] = useState("");
+  const [validite, setValidite] = useState("");
+  const [categorie, setCategorie] = useState("A");
+  const [classe, setClasse] = useState("A");
 
-  const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
-
-- Vu la Constitution ;
-- Vu la Loi n°021/2019 du 16 décembre 2019 relative à la sécurité sanitaire des aliments ;
-- Vu le Décret n°00162/PR/MAEP du 28 février 2020 portant organisation et fonctionnement de l'AGASA ;
-
-Accorde le présent AGRÉMENT SANITAIRE à :
-
-Établissement : {{etablissement}} ({{abreviation}})
-Adresse : {{adresse_bp}}
-Ville : {{ville}}, Arrondissement : {{arrondissement}}, Quartier : {{quartier}}
-Téléphone : {{telephone}}
-Email : {{email}}
-Objet social : {{objet_social}}
-
-Activité(s) autorisée(s) : {{activites}}
-
-N° d'agrément : {{numero_agrement}}
-Validité : {{validite}}
-
-Fait à Libreville, le [DATE]
-
-Le Directeur Général de l'AGASA`);
-
+  // Logos
   const [logoAgasa, setLogoAgasa] = useState<string | null>(null);
   const [sceauRepublique, setSceauRepublique] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSceau, setUploadingSceau] = useState(false);
 
+  const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
+
+-Vu la constitution,
+-Vu la loi n°...
+
+DECIDE
+
+Article 1: L'établissement {{etablissement}} ({{abreviation}}) situé à {{ville}}, arrondissement {{arrondissement}}, quartier {{quartier}}, est autorisé à exercer les activités suivantes: {{activites}}.
+
+Article 2: Le présent agrément sanitaire est valable jusqu'au {{validite}}.
+
+Article 3: L'agrément porte le numéro {{numero_agrement}}.`);
+
   useEffect(() => {
+    setMounted(true);
     loadLogos();
   }, []);
 
