@@ -76,7 +76,11 @@ export default function Produits() {
 
   async function loadProducts() {
     try {
-      const { data, error } = await supabase.from("products").select("*").order("name", { ascending: true });
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("institution", "aganor")
+        .order("name", { ascending: true });
 
       if (error) throw error;
       setProducts((data || []) as Product[]);
