@@ -21,6 +21,7 @@ import {
   ShoppingCart,
   Shield,
   User,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -97,6 +98,12 @@ const navItems: NavItem[] = [
     label: "Mes actualités",
     href: "/admin/actualites-agasa",
     icon: Newspaper,
+    roles: ["agasa"],
+  },
+  {
+    label: "Agrément sanitaire",
+    href: "/admin/agrement-sanitaire",
+    icon: FileText,
     roles: ["agasa"],
   },
   {
