@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Plus, Pencil, Trash2, Search, CheckCircle2, XCircle, Upload, FileSpreadsheet, Edit } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, Search, CheckCircle2, XCircle, Upload, FileSpreadsheet, Edit, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
