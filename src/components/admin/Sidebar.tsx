@@ -142,19 +142,19 @@ const navItems: NavItem[] = [
   // DGCCRF
   {
     label: "Mercuriale",
-    href: "/admin/mercuriale",
+    href: "/dgccrf/admin/mercuriale",
     icon: DollarSign,
     roles: ["dgccrf"],
   },
   {
     label: "Mes actualités",
-    href: "/admin/actualites-dgccrf",
+    href: "/dgccrf/admin/actualites-dgccrf",
     icon: Newspaper,
     roles: ["dgccrf"],
   },
   {
     label: "Plaintes DGCCRF",
-    href: "/admin/plaintes-dgccrf",
+    href: "/dgccrf/admin/plaintes-dgccrf",
     icon: AlertCircle,
     roles: ["dgccrf"],
   },
