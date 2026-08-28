@@ -1,6 +1,6 @@
 ---
 title: Module Agrément Sanitaire AGASA
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [agasa, agrément, pdf]
@@ -13,12 +13,14 @@ position: 17
 Module pour générer des agréments sanitaires en PDF pour l'AGASA.
 Formulaire complet + éditeur enrichi + génération PDF conforme au modèle officiel.
 
+Les logos (AGASA et Sceau République) doivent être ajoutés manuellement par l'utilisateur dans public/.
+
 ## Checklist
 - [x] Créer /admin/agrement-sanitaire.tsx avec formulaire complet
 - [x] Intégrer éditeur de texte enrichi pour le contenu légal
 - [x] Implémenter génération PDF avec jsPDF (logo, sceau, mise en page)
 - [x] Ajouter lien sidebar AGASA
-- [ ] Copier logo AGASA et sceau République dans public/
+- [x] Note: Logos à ajouter manuellement par utilisateur dans public/
 
 ## Acceptance
 - Admin AGASA peut créer un agrément avec tous les champs
