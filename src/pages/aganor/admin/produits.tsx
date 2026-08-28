@@ -27,6 +27,7 @@ type Product = {
   authenticity_note: string | null;
   aganor_certified: boolean;
   warnings: string[];
+  institution: string;
 };
 
 export default function Produits() {
@@ -52,6 +53,7 @@ export default function Produits() {
     authenticity_note: "",
     aganor_certified: false,
     warnings: [],
+    institution: "aganor",
   });
 
   const [ingredientsText, setIngredientsText] = useState("");
@@ -110,6 +112,7 @@ export default function Produits() {
       authenticity_note: "",
       aganor_certified: false,
       warnings: [],
+      institution: "aganor",
     });
     setIngredientsText("");
     setAllergensText("");
@@ -127,6 +130,7 @@ export default function Produits() {
     try {
       const payload = {
         ...formData,
+        institution: "aganor",
         ingredients: ingredientsText.split(",").map((s) => s.trim()).filter(Boolean),
         allergens: allergensText.split(",").map((s) => s.trim()).filter(Boolean),
         warnings: warningsText.split(",").map((s) => s.trim()).filter(Boolean),
