@@ -13,15 +13,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type Mercuriale = {
-  id: string;
-  product_name: string;
+  id: number;
+  group_name: string;
   category: string;
+  subcategory: string;
+  product: string;
   unit: string;
-  min_price: number;
-  max_price: number;
-  average_price: number;
-  market: string;
-  updated_at: string;
+  price_wholesale: number;
+  price_semi: number;
+  price_retail: number;
+  sort_order: number;
 };
 
 export default function Mercuriale() {
@@ -34,13 +35,15 @@ export default function Mercuriale() {
   const [editingMercuriale, setEditingMercuriale] = useState<Mercuriale | null>(null);
 
   const [formData, setFormData] = useState({
-    product_name: "",
+    group_name: "",
     category: "",
+    subcategory: "",
+    product: "",
     unit: "kg",
-    min_price: 0,
-    max_price: 0,
-    average_price: 0,
-    market: "",
+    price_wholesale: 0,
+    price_semi: 0,
+    price_retail: 0,
+    sort_order: 0,
   });
 
   useEffect(() => {
@@ -50,9 +53,9 @@ export default function Mercuriale() {
   useEffect(() => {
     const filtered = mercuriales.filter(
       (m) =>
-        m.product_name.toLowerCase().includes(search.toLowerCase()) ||
+        m.product.toLowerCase().includes(search.toLowerCase()) ||
         m.category.toLowerCase().includes(search.toLowerCase()) ||
-        m.market.toLowerCase().includes(search.toLowerCase())
+        m.group_name.toLowerCase().includes(search.toLowerCase())
     );
     setFilteredMercuriales(filtered);
   }, [search, mercuriales]);
@@ -62,7 +65,7 @@ export default function Mercuriale() {
       const { data, error } = await supabase
         .from("mercuriale")
         .select("*")
-        .order("updated_at", { ascending: false });
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setMercuriales(data || []);
@@ -77,33 +80,37 @@ export default function Mercuriale() {
   function handleEdit(mercuriale: Mercuriale) {
     setEditingMercuriale(mercuriale);
     setFormData({
-      product_name: mercuriale.product_name,
+      group_name: mercuriale.group_name,
       category: mercuriale.category,
+      subcategory: mercuriale.subcategory,
+      product: mercuriale.product,
       unit: mercuriale.unit,
-      min_price: mercuriale.min_price,
-      max_price: mercuriale.max_price,
-      average_price: mercuriale.average_price,
-      market: mercuriale.market,
+      price_wholesale: mercuriale.price_wholesale,
+      price_semi: mercuriale.price_semi,
+      price_retail: mercuriale.price_retail,
+      sort_order: mercuriale.sort_order,
     });
     setIsDialogOpen(true);
   }
 
   function resetForm() {
     setFormData({
-      product_name: "",
+      group_name: "",
       category: "",
+      subcategory: "",
+      product: "",
       unit: "kg",
-      min_price: 0,
-      max_price: 0,
-      average_price: 0,
-      market: "",
+      price_wholesale: 0,
+      price_semi: 0,
+      price_retail: 0,
+      sort_order: 0,
     });
     setEditingMercuriale(null);
     setIsDialogOpen(false);
   }
 
   async function handleSave() {
-    if (!formData.product_name || !formData.category || !formData.market) {
+    if (!formData.product || !formData.category || !formData.group_name) {
       toast({ variant: "destructive", title: "Erreur", description: "Tous les champs sont requis" });
       return;
     }
@@ -131,7 +138,7 @@ export default function Mercuriale() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: number) {
     if (!confirm("Confirmer la suppression de cette entrée ?")) return;
 
     try {
@@ -146,13 +153,10 @@ export default function Mercuriale() {
   }
 
   const totalProducts = mercuriales.length;
-  const avgPrice =
+  const avgPriceRetail =
     mercuriales.length > 0
-      ? mercuriales.reduce((sum, m) => sum + m.average_price, 0) / mercuriales.length
+      ? mercuriales.reduce((sum, m) => sum + m.price_retail, 0) / mercuriales.length
       : 0;
-  const thisWeek = mercuriales.filter(
-    (m) => new Date(m.updated_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  ).length;
 
   return (
     <AdminLayout>
@@ -175,14 +179,26 @@ export default function Mercuriale() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="product_name">Produit *</Label>
+                    <Label htmlFor="product">Produit *</Label>
                     <Input
-                      id="product_name"
-                      value={formData.product_name}
-                      onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                      id="product"
+                      value={formData.product}
+                      onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                       placeholder="ex: Tomate"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="group_name">Groupe *</Label>
+                    <Input
+                      id="group_name"
+                      value={formData.group_name}
+                      onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
+                      placeholder="ex: Mont-Bouët"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="category">Catégorie *</Label>
                     <Input
@@ -192,34 +208,43 @@ export default function Mercuriale() {
                       placeholder="ex: Légumes"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="subcategory">Sous-catégorie *</Label>
+                    <Input
+                      id="subcategory"
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                      placeholder="ex: Fruits locaux"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="min_price">Prix min (FCFA) *</Label>
+                    <Label htmlFor="price_wholesale">Prix Gros (FCFA) *</Label>
                     <Input
-                      id="min_price"
+                      id="price_wholesale"
                       type="number"
-                      value={formData.min_price}
-                      onChange={(e) => setFormData({ ...formData, min_price: Number(e.target.value) })}
+                      value={formData.price_wholesale}
+                      onChange={(e) => setFormData({ ...formData, price_wholesale: Number(e.target.value) })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="max_price">Prix max (FCFA) *</Label>
+                    <Label htmlFor="price_semi">Prix Demi-gros (FCFA) *</Label>
                     <Input
-                      id="max_price"
+                      id="price_semi"
                       type="number"
-                      value={formData.max_price}
-                      onChange={(e) => setFormData({ ...formData, max_price: Number(e.target.value) })}
+                      value={formData.price_semi}
+                      onChange={(e) => setFormData({ ...formData, price_semi: Number(e.target.value) })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="average_price">Prix moyen (FCFA) *</Label>
+                    <Label htmlFor="price_retail">Prix Détail (FCFA) *</Label>
                     <Input
-                      id="average_price"
+                      id="price_retail"
                       type="number"
-                      value={formData.average_price}
-                      onChange={(e) => setFormData({ ...formData, average_price: Number(e.target.value) })}
+                      value={formData.price_retail}
+                      onChange={(e) => setFormData({ ...formData, price_retail: Number(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -242,12 +267,12 @@ export default function Mercuriale() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="market">Marché *</Label>
+                    <Label htmlFor="sort_order">Ordre d'affichage</Label>
                     <Input
-                      id="market"
-                      value={formData.market}
-                      onChange={(e) => setFormData({ ...formData, market: e.target.value })}
-                      placeholder="ex: Mont-Bouët"
+                      id="sort_order"
+                      type="number"
+                      value={formData.sort_order}
+                      onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -264,7 +289,7 @@ export default function Mercuriale() {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total produits</CardTitle>
@@ -277,21 +302,11 @@ export default function Mercuriale() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Prix moyen</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Prix moyen détail</CardTitle>
               <TrendingUp className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{avgPrice.toFixed(0)} FCFA</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Mises à jour (7j)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{thisWeek}</div>
+              <div className="text-2xl font-bold text-foreground">{avgPriceRetail.toFixed(0)} FCFA</div>
             </CardContent>
           </Card>
         </div>
@@ -322,28 +337,26 @@ export default function Mercuriale() {
                   <TableRow>
                     <TableHead>Produit</TableHead>
                     <TableHead>Catégorie</TableHead>
-                    <TableHead>Marché</TableHead>
+                    <TableHead>Groupe</TableHead>
                     <TableHead>Unité</TableHead>
-                    <TableHead className="text-right">Prix min</TableHead>
-                    <TableHead className="text-right">Prix moyen</TableHead>
-                    <TableHead className="text-right">Prix max</TableHead>
-                    <TableHead>Mise à jour</TableHead>
+                    <TableHead className="text-right">Gros</TableHead>
+                    <TableHead className="text-right">Demi-gros</TableHead>
+                    <TableHead className="text-right">Détail</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMercuriales.map((mercuriale) => (
                     <TableRow key={mercuriale.id}>
-                      <TableCell className="font-medium">{mercuriale.product_name}</TableCell>
+                      <TableCell className="font-medium">{mercuriale.product}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{mercuriale.category}</Badge>
                       </TableCell>
-                      <TableCell>{mercuriale.market}</TableCell>
+                      <TableCell>{mercuriale.group_name}</TableCell>
                       <TableCell>{mercuriale.unit}</TableCell>
-                      <TableCell className="text-right">{mercuriale.min_price} FCFA</TableCell>
-                      <TableCell className="text-right font-semibold">{mercuriale.average_price} FCFA</TableCell>
-                      <TableCell className="text-right">{mercuriale.max_price} FCFA</TableCell>
-                      <TableCell>{new Date(mercuriale.updated_at).toLocaleDateString("fr-FR")}</TableCell>
+                      <TableCell className="text-right">{mercuriale.price_wholesale} FCFA</TableCell>
+                      <TableCell className="text-right">{mercuriale.price_semi} FCFA</TableCell>
+                      <TableCell className="text-right font-semibold">{mercuriale.price_retail} FCFA</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(mercuriale)}>

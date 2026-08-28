@@ -15,13 +15,20 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Complaint = {
   id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: string;
-  priority: string;
-  created_at: string;
   user_id: string;
+  created_at: string;
+  agency: string;
+  type: string;
+  product: string;
+  merchant: string | null;
+  official_price: number | null;
+  practiced_price: number | null;
+  details: string | null;
+  location_label: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  status: string;
+  photo_urls: string[];
   profiles?: { full_name: string } | null;
 };
 
@@ -34,7 +41,6 @@ export default function PlaintesDGCCRF() {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
-  const [adminResponse, setAdminResponse] = useState("");
 
   useEffect(() => {
     loadComplaints();
@@ -43,9 +49,9 @@ export default function PlaintesDGCCRF() {
   useEffect(() => {
     const filtered = complaints.filter(
       (c) =>
-        c.title.toLowerCase().includes(search.toLowerCase()) ||
-        c.description.toLowerCase().includes(search.toLowerCase()) ||
-        c.category.toLowerCase().includes(search.toLowerCase())
+        c.product.toLowerCase().includes(search.toLowerCase()) ||
+        (c.merchant && c.merchant.toLowerCase().includes(search.toLowerCase())) ||
+        c.type.toLowerCase().includes(search.toLowerCase())
     );
     setFilteredComplaints(filtered);
   }, [search, complaints]);
@@ -55,7 +61,7 @@ export default function PlaintesDGCCRF() {
       const { data, error } = await supabase
         .from("complaints")
         .select("*, profiles(full_name)")
-        .eq("category", "dgccrf")
+        .eq("agency", "DGCCRF")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -71,7 +77,6 @@ export default function PlaintesDGCCRF() {
   function handleView(complaint: Complaint) {
     setSelectedComplaint(complaint);
     setNewStatus(complaint.status);
-    setAdminResponse("");
     setIsDialogOpen(true);
   }
 
@@ -81,10 +86,7 @@ export default function PlaintesDGCCRF() {
     try {
       const { error } = await supabase
         .from("complaints")
-        .update({
-          status: newStatus,
-          admin_response: adminResponse || null,
-        })
+        .update({ status: newStatus })
         .eq("id", selectedComplaint.id);
 
       if (error) throw error;
@@ -97,36 +99,33 @@ export default function PlaintesDGCCRF() {
   }
 
   const totalComplaints = complaints.length;
-  const pending = complaints.filter((c) => c.status === "pending").length;
-  const resolved = complaints.filter((c) => c.status === "resolved").length;
-  const rejected = complaints.filter((c) => c.status === "rejected").length;
+  const pending = complaints.filter((c) => c.status === "soumise").length;
+  const resolved = complaints.filter((c) => c.status === "traitee").length;
+  const inProgress = complaints.filter((c) => c.status === "en_cours").length;
 
   function getStatusBadge(status: string) {
     switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />En attente</Badge>;
-      case "in_progress":
+      case "soumise":
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Soumise</Badge>;
+      case "en_cours":
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">En cours</Badge>;
-      case "resolved":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Résolue</Badge>;
-      case "rejected":
+      case "traitee":
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Traitée</Badge>;
+      case "rejetee":
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300"><XCircle className="h-3 w-3 mr-1" />Rejetée</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   }
 
-  function getPriorityBadge(priority: string) {
-    switch (priority) {
-      case "high":
-        return <Badge variant="destructive">Élevée</Badge>;
-      case "medium":
-        return <Badge className="bg-accent text-accent-foreground">Moyenne</Badge>;
-      case "low":
-        return <Badge variant="secondary">Faible</Badge>;
-      default:
-        return <Badge variant="outline">{priority}</Badge>;
-    }
+  function getTypeBadge(type: string) {
+    const labels: Record<string, string> = {
+      prix: "Prix",
+      qualite: "Qualité",
+      hygiene: "Hygiène",
+      autre: "Autre",
+    };
+    return <Badge variant="secondary">{labels[type] || type}</Badge>;
   }
 
   return (
@@ -149,7 +148,7 @@ export default function PlaintesDGCCRF() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">En attente</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Soumises</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -159,21 +158,21 @@ export default function PlaintesDGCCRF() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Résolues</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">En cours</CardTitle>
+              <AlertCircle className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{resolved}</div>
+              <div className="text-2xl font-bold text-foreground">{inProgress}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Rejetées</CardTitle>
-              <XCircle className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Traitées</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{rejected}</div>
+              <div className="text-2xl font-bold text-foreground">{resolved}</div>
             </CardContent>
           </Card>
         </div>
@@ -202,10 +201,10 @@ export default function PlaintesDGCCRF() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Titre</TableHead>
+                    <TableHead>Produit</TableHead>
                     <TableHead>Citoyen</TableHead>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead>Priorité</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Commerçant</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -214,10 +213,10 @@ export default function PlaintesDGCCRF() {
                 <TableBody>
                   {filteredComplaints.map((complaint) => (
                     <TableRow key={complaint.id}>
-                      <TableCell className="font-medium">{complaint.title}</TableCell>
+                      <TableCell className="font-medium">{complaint.product}</TableCell>
                       <TableCell>{complaint.profiles?.full_name || "Non renseigné"}</TableCell>
-                      <TableCell><Badge variant="outline">{complaint.category}</Badge></TableCell>
-                      <TableCell>{getPriorityBadge(complaint.priority)}</TableCell>
+                      <TableCell>{getTypeBadge(complaint.type)}</TableCell>
+                      <TableCell>{complaint.merchant || "-"}</TableCell>
                       <TableCell>{getStatusBadge(complaint.status)}</TableCell>
                       <TableCell>{new Date(complaint.created_at).toLocaleDateString("fr-FR")}</TableCell>
                       <TableCell className="text-right">
@@ -240,28 +239,63 @@ export default function PlaintesDGCCRF() {
             </DialogHeader>
             {selectedComplaint && (
               <div className="space-y-4">
-                <div>
-                  <Label>Titre</Label>
-                  <div className="mt-1 font-medium">{selectedComplaint.title}</div>
-                </div>
-
-                <div>
-                  <Label>Description</Label>
-                  <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
-                    {selectedComplaint.description}
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Catégorie</Label>
-                    <div className="mt-1"><Badge variant="outline">{selectedComplaint.category}</Badge></div>
+                    <Label>Produit</Label>
+                    <div className="mt-1 font-medium">{selectedComplaint.product}</div>
                   </div>
                   <div>
-                    <Label>Priorité</Label>
-                    <div className="mt-1">{getPriorityBadge(selectedComplaint.priority)}</div>
+                    <Label>Type</Label>
+                    <div className="mt-1">{getTypeBadge(selectedComplaint.type)}</div>
                   </div>
                 </div>
+
+                {selectedComplaint.merchant && (
+                  <div>
+                    <Label>Commerçant</Label>
+                    <div className="mt-1">{selectedComplaint.merchant}</div>
+                  </div>
+                )}
+
+                {selectedComplaint.official_price && selectedComplaint.practiced_price && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Prix officiel</Label>
+                      <div className="mt-1">{selectedComplaint.official_price} FCFA</div>
+                    </div>
+                    <div>
+                      <Label>Prix pratiqué</Label>
+                      <div className="mt-1 font-semibold text-destructive">{selectedComplaint.practiced_price} FCFA</div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedComplaint.details && (
+                  <div>
+                    <Label>Détails</Label>
+                    <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
+                      {selectedComplaint.details}
+                    </div>
+                  </div>
+                )}
+
+                {selectedComplaint.location_label && (
+                  <div>
+                    <Label>Localisation</Label>
+                    <div className="mt-1">{selectedComplaint.location_label}</div>
+                  </div>
+                )}
+
+                {selectedComplaint.photo_urls.length > 0 && (
+                  <div>
+                    <Label>Photos</Label>
+                    <div className="mt-2 grid grid-cols-3 gap-2">
+                      {selectedComplaint.photo_urls.map((url, i) => (
+                        <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded border" />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="status">Nouveau statut</Label>
@@ -270,23 +304,12 @@ export default function PlaintesDGCCRF() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">En attente</SelectItem>
-                      <SelectItem value="in_progress">En cours</SelectItem>
-                      <SelectItem value="resolved">Résolue</SelectItem>
-                      <SelectItem value="rejected">Rejetée</SelectItem>
+                      <SelectItem value="soumise">Soumise</SelectItem>
+                      <SelectItem value="en_cours">En cours</SelectItem>
+                      <SelectItem value="traitee">Traitée</SelectItem>
+                      <SelectItem value="rejetee">Rejetée</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="response">Réponse de l'administration</Label>
-                  <Textarea
-                    id="response"
-                    value={adminResponse}
-                    onChange={(e) => setAdminResponse(e.target.value)}
-                    placeholder="Réponse facultative..."
-                    rows={4}
-                  />
                 </div>
 
                 <div className="flex justify-end gap-3">

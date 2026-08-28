@@ -148,9 +148,6 @@ export default function ActualitesDGCCRF() {
 
   const totalNews = news.length;
   const published = news.filter((n) => new Date(n.published_date) <= new Date()).length;
-  const thisWeek = news.filter(
-    (n) => new Date(n.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  ).length;
 
   return (
     <AdminLayout>
@@ -253,7 +250,7 @@ export default function ActualitesDGCCRF() {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total actualités</CardTitle>
@@ -271,16 +268,6 @@ export default function ActualitesDGCCRF() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{published}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Cette semaine</CardTitle>
-              <Calendar className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{thisWeek}</div>
             </CardContent>
           </Card>
         </div>
