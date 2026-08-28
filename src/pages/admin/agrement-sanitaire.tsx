@@ -367,7 +367,7 @@ Article 4: Cet agrément peut être suspendu ou retiré en cas de non-respect de
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Variables disponibles: {"{{""}etablissement{"}}"}, {"{{""}abreviation{"}}"}, {"{{""}ville{"}}"}, {"{{""}arrondissement{"}}"}, {"{{""}quartier{"}}"}, {"{{""}activites{"}}"}, {"{{""}numero_agrement{"}}"}, {"{{""}validite{"}}"}, {"{{""}categorie{"}}"}, {"{{""}classe{{"}"}"}
+                  {`Variables disponibles: {{etablissement}}, {{abreviation}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}`}
                 </p>
                 <Textarea
                   value={contenuLegal}
