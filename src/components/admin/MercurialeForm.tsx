@@ -13,6 +13,7 @@ import { DollarSign, Plus, Pencil, Trash2, List, FolderTree } from "lucide-react
 type MercurialeProduct = {
   id: number;
   product: string;
+  unit: string;
   group_name: string;
   category: string;
   subcategory: string;
@@ -59,6 +60,7 @@ export default function MercurialeForm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [formProduct, setFormProduct] = useState("");
+  const [formUnit, setFormUnit] = useState("kg");
   const [formGroupId, setFormGroupId] = useState<number | null>(null);
   const [formCategoryId, setFormCategoryId] = useState<number | null>(null);
   const [formSubcategoryId, setFormSubcategoryId] = useState<number | null>(null);
@@ -104,6 +106,7 @@ export default function MercurialeForm() {
 
   function resetForm() {
     setFormProduct("");
+    setFormUnit("kg");
     setFormGroupId(null);
     setFormCategoryId(null);
     setFormSubcategoryId(null);
@@ -121,6 +124,7 @@ export default function MercurialeForm() {
   function openEditDialog(product: MercurialeProduct) {
     setEditingProduct(product);
     setFormProduct(product.product);
+    setFormUnit(product.unit);
     setFormGroupId(product.group_id);
     setFormCategoryId(product.category_id);
     setFormSubcategoryId(product.subcategory_id);
@@ -142,6 +146,7 @@ export default function MercurialeForm() {
 
     const payload = {
       product: formProduct.trim(),
+      unit: formUnit,
       group_id: formGroupId,
       category_id: formCategoryId,
       subcategory_id: formSubcategoryId,
@@ -266,6 +271,7 @@ export default function MercurialeForm() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Produit</TableHead>
+                  <TableHead>Unité</TableHead>
                   <TableHead>Groupe → Catégorie</TableHead>
                   <TableHead>Sous-catégorie</TableHead>
                   <TableHead>Gros (FCFA)</TableHead>
@@ -278,6 +284,7 @@ export default function MercurialeForm() {
                 {products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.product}</TableCell>
+                    <TableCell className="text-muted-foreground">{product.unit}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {product.group_name} → {product.category}
                     </TableCell>
@@ -332,7 +339,10 @@ export default function MercurialeForm() {
                                     <div className="ml-8 space-y-1">
                                       {products.map((product) => (
                                         <div key={product.id} className="flex items-center justify-between text-sm py-1">
-                                          <span>{product.product}</span>
+                                          <div>
+                                            <span className="font-medium">{product.product}</span>
+                                            <span className="text-muted-foreground ml-2">({product.unit})</span>
+                                          </div>
                                           <div className="flex gap-4 text-muted-foreground">
                                             <span>Gros: {product.price_wholesale}</span>
                                             <span>Semi: {product.price_semi}</span>
@@ -372,9 +382,26 @@ export default function MercurialeForm() {
               <CardTitle>{editingProduct ? "Modifier le produit" : "Ajouter un produit"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>Nom du produit *</Label>
-                <Input value={formProduct} onChange={(e) => setFormProduct(e.target.value)} placeholder="Ex: Tomate" />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Nom du produit *</Label>
+                  <Input value={formProduct} onChange={(e) => setFormProduct(e.target.value)} placeholder="Ex: Tomate" />
+                </div>
+                <div>
+                  <Label>Unité *</Label>
+                  <select
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                  >
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="l">l</option>
+                    <option value="ml">ml</option>
+                    <option value="unité">unité</option>
+                    <option value="sac">sac</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
