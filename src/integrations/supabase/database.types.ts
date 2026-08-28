@@ -11,7 +11,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -137,6 +137,8 @@ export type Database = {
       mercuriale: {
         Row: {
           category: string
+          category_id: number | null
+          group_id: number | null
           group_name: string
           id: number
           price_retail: number
@@ -145,10 +147,13 @@ export type Database = {
           product: string
           sort_order: number
           subcategory: string
+          subcategory_id: number | null
           unit: string
         }
         Insert: {
           category: string
+          category_id?: number | null
+          group_id?: number | null
           group_name: string
           id?: never
           price_retail: number
@@ -157,10 +162,13 @@ export type Database = {
           product: string
           sort_order?: number
           subcategory: string
+          subcategory_id?: number | null
           unit: string
         }
         Update: {
           category?: string
+          category_id?: number | null
+          group_id?: number | null
           group_name?: string
           id?: never
           price_retail?: number
@@ -169,9 +177,126 @@ export type Database = {
           product?: string
           sort_order?: number
           subcategory?: string
+          subcategory_id?: number | null
           unit?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "mercuriale_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "mercuriale_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mercuriale_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "mercuriale_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mercuriale_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "mercuriale_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mercuriale_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_id: number
+          id: number
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_id: number
+          id?: never
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_id?: number
+          id?: never
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mercuriale_categories_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "mercuriale_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mercuriale_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: never
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: never
+          name?: string
+          sort_order?: number
+        }
         Relationships: []
+      }
+      mercuriale_subcategories: {
+        Row: {
+          category_id: number
+          created_at: string
+          description: string | null
+          id: number
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          category_id: number
+          created_at?: string
+          description?: string | null
+          id?: never
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          category_id?: number
+          created_at?: string
+          description?: string | null
+          id?: never
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mercuriale_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "mercuriale_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news: {
         Row: {

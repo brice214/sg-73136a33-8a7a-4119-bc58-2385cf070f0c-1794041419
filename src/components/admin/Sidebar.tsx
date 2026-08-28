@@ -22,6 +22,7 @@ import {
   Shield,
   User,
   FileText,
+  FolderTree,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -140,6 +141,12 @@ const navItems: NavItem[] = [
   },
 
   // DGCCRF
+  {
+    label: "Catalogue",
+    href: "/dgccrf/admin/catalogue",
+    icon: FolderTree,
+    roles: ["dgccrf"],
+  },
   {
     label: "Mercuriale",
     href: "/dgccrf/admin/mercuriale",
