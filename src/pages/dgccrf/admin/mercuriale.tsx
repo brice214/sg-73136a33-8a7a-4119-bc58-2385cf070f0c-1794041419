@@ -1,11 +1,11 @@
-import dynamic from "next/dynamic";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { MercurialeForm } from "@/components/admin/MercurialeForm";
+import { SEO } from "@/components/SEO";
 
-const MercurialeForm = dynamic(() => import("@/components/admin/MercurialeForm"), { ssr: false });
-
-export default function Mercuriale() {
+export default function MercurialePage() {
   return (
     <AdminLayout>
+      <SEO title="Mercuriale - DGCCRF Admin" noIndex={true} />
       <MercurialeForm />
     </AdminLayout>
   );

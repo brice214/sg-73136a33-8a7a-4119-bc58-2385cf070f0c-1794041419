@@ -104,6 +104,7 @@ export default function NotificationsPage() {
 
   return (
     <AdminLayout>
+      <SEO title="Notifications - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">

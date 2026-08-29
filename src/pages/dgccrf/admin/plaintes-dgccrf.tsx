@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, Search, Eye, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/ui/seo";
 
 type Complaint = {
   id: string;
@@ -130,6 +131,7 @@ export default function PlaintesDGCCRF() {
 
   return (
     <AdminLayout>
+      <SEO title="Plaintes DGCCRF - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Plaintes DGCCRF</h1>

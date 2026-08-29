@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, Trash2, Search, Newspaper } from "lucide-react";
+import { SEO } from "@/components/ui/seo";
 
 interface NewsArticle {
   id: number;
@@ -186,6 +187,7 @@ export default function ActualitesAgasa() {
 
   return (
     <AdminLayout>
+      <SEO title="Actualités AGASA - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

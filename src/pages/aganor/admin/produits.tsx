@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { SEO } from "@/components/ui/seo";
 
 type Product = {
   barcode: string;
@@ -317,6 +318,7 @@ ABC123,Produit exemple,Marque A,Catégorie 1,Gabon,https://example.com/image.jpg
 
   return (
     <AdminLayout>
+      <SEO title="Produits AGANOR - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Mes produits AGANOR</h1>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Plus, Edit, Trash2, Search, Newspaper, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/ui/seo";
 
 type News = {
   id: number;
@@ -150,6 +151,7 @@ export default function ActualitesDGCCRF() {
 
   return (
     <AdminLayout>
+      <SEO title="Actualités DGCCRF - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Mes actualités DGCCRF</h1>

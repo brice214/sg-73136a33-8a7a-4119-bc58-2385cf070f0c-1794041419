@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Activity, AlertCircle, Crown, TrendingUp, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SEO } from "@/components/ui/seo";
 
 type Metrics = {
   citizens: {
@@ -178,6 +179,7 @@ export default function MetriquesPage() {
 
   return (
     <AdminLayout>
+      <SEO title="Métriques - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">

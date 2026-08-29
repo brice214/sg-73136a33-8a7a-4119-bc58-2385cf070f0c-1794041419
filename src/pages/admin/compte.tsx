@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Save } from "lucide-react";
+import { SEO } from "@/components/ui/seo";
 
 export default function ComptePage() {
   const { session } = useAdminAuth();
@@ -141,7 +142,8 @@ export default function ComptePage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <SEO title="Mon Compte - MISSU BALA Admin" noIndex={true} />
+      <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-2">
             <User className="w-8 h-8 text-primary" />

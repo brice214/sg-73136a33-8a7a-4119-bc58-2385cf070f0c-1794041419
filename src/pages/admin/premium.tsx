@@ -290,6 +290,7 @@ export default function PremiumPage() {
 
   return (
     <AdminLayout>
+      <SEO title="Premium - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-2">

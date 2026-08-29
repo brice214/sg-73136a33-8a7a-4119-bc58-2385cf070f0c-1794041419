@@ -119,7 +119,7 @@ export default function PlaintesAgasaPage() {
 
   return (
     <AdminLayout>
-      <SEO title="Plaintes AGASA - MISSU BALA Admin" />
+      <SEO title="Plaintes AGASA - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-primary">Plaintes AGASA</h1>

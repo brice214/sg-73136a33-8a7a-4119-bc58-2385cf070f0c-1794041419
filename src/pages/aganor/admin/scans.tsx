@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, ScanLine, TrendingUp, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/ui/seo";
 
 type ScanHistory = {
   id: string;
@@ -64,6 +65,7 @@ export default function Scans() {
 
   return (
     <AdminLayout>
+      <SEO title="Scans AGANOR - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Historique des scans</h1>

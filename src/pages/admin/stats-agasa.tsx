@@ -71,7 +71,7 @@ export default function StatsAgasaPage() {
 
   return (
     <AdminLayout>
-      <SEO title="Statistiques AGASA - MISSU BALA Admin" />
+      <SEO title="Stats AGASA - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-primary">Statistiques AGASA</h1>
