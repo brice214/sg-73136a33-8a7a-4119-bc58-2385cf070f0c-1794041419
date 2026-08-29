@@ -160,47 +160,38 @@ export type Database = {
       }
       mercuriale: {
         Row: {
-          category: string
           category_id: number | null
           group_id: number | null
-          group_name: string
           id: number
           price_retail: number
           price_semi: number
           price_wholesale: number
           product: string
           sort_order: number
-          subcategory: string
           subcategory_id: number | null
           unit: string
         }
         Insert: {
-          category: string
           category_id?: number | null
           group_id?: number | null
-          group_name: string
           id?: never
           price_retail: number
           price_semi: number
           price_wholesale: number
           product: string
           sort_order?: number
-          subcategory: string
           subcategory_id?: number | null
           unit: string
         }
         Update: {
-          category?: string
           category_id?: number | null
           group_id?: number | null
-          group_name?: string
           id?: never
           price_retail?: number
           price_semi?: number
           price_wholesale?: number
           product?: string
           sort_order?: number
-          subcategory?: string
           subcategory_id?: number | null
           unit?: string
         }
