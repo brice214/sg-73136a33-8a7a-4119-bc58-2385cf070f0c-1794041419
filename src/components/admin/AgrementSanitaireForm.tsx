@@ -30,6 +30,7 @@ export default function AgrementSanitaireForm() {
   const [validite, setValidite] = useState("");
   const [categorie, setCategorie] = useState<"A" | "B" | "C">("A");
   const [classe, setClasse] = useState<"A" | "B" | "C">("A");
+  const [dateInspection, setDateInspection] = useState("");
 
   const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
 
@@ -153,6 +154,7 @@ Le Directeur Général de l'AGASA`);
       .replace(/\{\{validite\}\}/g, validite)
       .replace(/\{\{categorie\}\}/g, categorie)
       .replace(/\{\{classe\}\}/g, classe)
+      .replace(/\{\{date_inspection\}\}/g, dateInspection)
       .replace(/\[DATE\]/g, new Date().toLocaleDateString("fr-FR"));
   }
 
@@ -381,30 +383,52 @@ Le Directeur Général de l'AGASA`);
 
                 <div>
                   <Label htmlFor="categorie">Catégorie</Label>
-                  <Select value={categorie} onValueChange={(val: "A" | "B" | "C") => setCategorie(val)}>
-                    <SelectTrigger id="categorie">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">A</SelectItem>
-                      <SelectItem value="B">B</SelectItem>
-                      <SelectItem value="C">C</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    {(["1", "2", "3"] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategorie(cat as "A" | "B" | "C")}
+                        className={`px-4 py-2 rounded-lg border transition-all ${
+                          categorie === cat
+                            ? "border-primary bg-primary/10 font-bold text-lg"
+                            : "border-muted-foreground/20 text-muted-foreground"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
                   <Label htmlFor="classe">Classe</Label>
-                  <Select value={classe} onValueChange={(val: "A" | "B" | "C") => setClasse(val)}>
-                    <SelectTrigger id="classe">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">A</SelectItem>
-                      <SelectItem value="B">B</SelectItem>
-                      <SelectItem value="C">C</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    {(["A", "B", "C"] as const).map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => setClasse(cls)}
+                        className={`px-4 py-2 rounded-lg border transition-all ${
+                          classe === cls
+                            ? "border-primary bg-primary/10 font-bold text-lg"
+                            : "border-muted-foreground/20 text-muted-foreground"
+                        }`}
+                      >
+                        {cls}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="date_inspection">Date d'inspection sanitaire</Label>
+                  <Input
+                    id="date_inspection"
+                    type="date"
+                    value={dateInspection}
+                    onChange={(e) => setDateInspection(e.target.value)}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -417,7 +441,7 @@ Le Directeur Général de l'AGASA`);
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  {`Variables disponibles: {{etablissement}}, {{abreviation}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}`}
+                  {`Variables disponibles (15): {{etablissement}}, {{abreviation}}, {{adresse_bp}}, {{telephone}}, {{email}}, {{objet_social}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}, {{date_inspection}}`}
                 </p>
                 <Textarea
                   value={contenuLegal}
