@@ -272,6 +272,7 @@ export default function WebTVPage() {
 
   return (
     <AdminLayout>
+      <SEO title="WebTV - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

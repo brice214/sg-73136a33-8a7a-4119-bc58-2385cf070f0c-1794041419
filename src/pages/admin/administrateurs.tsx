@@ -306,7 +306,7 @@ export default function AdministrateursPage() {
 
   return (
     <AdminLayout>
-      <SEO title="Administrateurs - MISSU BALA Admin" />
+      <SEO title="Administrateurs - MISSU BALA Admin" noIndex={true} />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
