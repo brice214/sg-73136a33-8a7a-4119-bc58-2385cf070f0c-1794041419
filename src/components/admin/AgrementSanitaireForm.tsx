@@ -28,7 +28,7 @@ export default function AgrementSanitaireForm() {
   const [activites, setActivites] = useState("");
   const [numeroAgrement, setNumeroAgrement] = useState("");
   const [validite, setValidite] = useState("");
-  const [categorie, setCategorie] = useState<"A" | "B" | "C">("A");
+  const [categorie, setCategorie] = useState<"1" | "2" | "3">("1");
   const [classe, setClasse] = useState<"A" | "B" | "C">("A");
   const [dateInspection, setDateInspection] = useState("");
 
@@ -388,7 +388,7 @@ Le Directeur Général de l'AGASA`);
                       <button
                         key={cat}
                         type="button"
-                        onClick={() => setCategorie(cat as "A" | "B" | "C")}
+                        onClick={() => setCategorie(cat)}
                         className={`px-4 py-2 rounded-lg border transition-all ${
                           categorie === cat
                             ? "border-primary bg-primary/10 font-bold text-lg"
