@@ -134,6 +134,30 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          content: string
+          id: string
+          type: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          content: string
+          id: string
+          type: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          id?: string
+          type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       mercuriale: {
         Row: {
           category: string
