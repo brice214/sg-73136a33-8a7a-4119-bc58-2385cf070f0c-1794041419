@@ -190,96 +190,93 @@ Le Directeur Général de l'AGASA`);
 
   function replaceVariables(text: string): string {
     return text
-      .replace(/\{\{etablissement\}\}/g, etablissement)
-      .replace(/\{\{abreviation\}\}/g, abreviation)
-      .replace(/\{\{adresse_bp\}\}/g, adresseBP)
-      .replace(/\{\{telephone\}\}/g, telephone)
-      .replace(/\{\{email\}\}/g, email)
-      .replace(/\{\{objet_social\}\}/g, objetSocial)
-      .replace(/\{\{ville\}\}/g, ville)
-      .replace(/\{\{arrondissement\}\}/g, arrondissement)
-      .replace(/\{\{quartier\}\}/g, quartier)
-      .replace(/\{\{activites\}\}/g, activites)
-      .replace(/\{\{numero_agrement\}\}/g, numeroAgrement)
-      .replace(/\{\{validite\}\}/g, validite)
-      .replace(/\{\{categorie\}\}/g, categorie)
-      .replace(/\{\{classe\}\}/g, classe)
-      .replace(/\{\{date_inspection\}\}/g, dateInspection)
-      .replace(/\[DATE\]/g, new Date().toLocaleDateString("fr-FR"));
+      .replace(/\{\{etablissement\}\}/g, `<strong>${etablissement}</strong>`)
+      .replace(/\{\{abreviation\}\}/g, `<strong>${abreviation}</strong>`)
+      .replace(/\{\{adresse_bp\}\}/g, `<strong>${adresseBP}</strong>`)
+      .replace(/\{\{telephone\}\}/g, `<strong>${telephone}</strong>`)
+      .replace(/\{\{email\}\}/g, `<strong>${email}</strong>`)
+      .replace(/\{\{objet_social\}\}/g, `<strong>${objetSocial}</strong>`)
+      .replace(/\{\{ville\}\}/g, `<strong>${ville}</strong>`)
+      .replace(/\{\{arrondissement\}\}/g, `<strong>${arrondissement}</strong>`)
+      .replace(/\{\{quartier\}\}/g, `<strong>${quartier}</strong>`)
+      .replace(/\{\{activites\}\}/g, `<strong>${activites}</strong>`)
+      .replace(/\{\{numero_agrement\}\}/g, `<strong>${numeroAgrement}</strong>`)
+      .replace(/\{\{validite\}\}/g, `<strong>${validite}</strong>`)
+      .replace(/\{\{categorie\}\}/g, `<strong>${categorie}</strong>`)
+      .replace(/\{\{classe\}\}/g, `<strong>${classe}</strong>`)
+      .replace(/\{\{date_inspection\}\}/g, `<strong>${dateInspection ? new Date(dateInspection).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-") : ""}</strong>`)
+      .replace(/\[DATE\]/g, `<strong>${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-")}</strong>`);
   }
 
   async function generatePDF() {
-    if (!etablissement || !numeroAgrement) {
-      toast({ variant: "destructive", title: "Erreur", description: "Établissement et N° agrément requis" });
-      return;
-    }
-
     try {
-      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
+      const pdf = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
+      let y = margin;
 
+      // En-tête avec logos
       if (logoAgasa) {
-        const imgLogo = await fetch(logoAgasa).then((r) => r.blob()).then((b) => URL.createObjectURL(b));
-        doc.addImage(imgLogo, "PNG", 15, 10, 40, 20);
+        const logoImg = await loadImage(logoAgasa);
+        pdf.addImage(logoImg, "PNG", margin, y, 30, 30);
       }
 
       if (sceauRepublique) {
-        const imgSceau = await fetch(sceauRepublique).then((r) => r.blob()).then((b) => URL.createObjectURL(b));
-        doc.addImage(imgSceau, "PNG", pageWidth - 55, 10, 40, 20);
+        const sceauImg = await loadImage(sceauRepublique);
+        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 30, y, 30, 30);
       }
 
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION", pageWidth / 2, 20, { align: "center" });
+      y += 35;
 
-      doc.setDrawColor(0, 100, 0);
-      doc.setLineWidth(0.5);
-      doc.line(15, 35, pageWidth - 15, 35);
+      // Contenu légal avec parsing HTML pour gras
+      const processedContent = replaceVariables(contenuLegal);
+      const lines = processedContent.split("\n");
 
-      doc.setFontSize(18);
-      doc.setFont("helvetica", "bold");
-      doc.text("AGRÉMENT SANITAIRE", pageWidth / 2, 45, { align: "center" });
+      pdf.setFontSize(9.5);
+      
+      for (const line of lines) {
+        if (y > pageHeight - 25) break; // Arrêter si on dépasse
 
-      doc.setFontSize(12);
-      doc.text("Catégorie", 30, 50);
-      doc.setFontSize(24);
-      doc.setFont("helvetica", "bold");
-      doc.text(categorie, 35, 58);
+        // Parser HTML simple pour gras
+        const parts = line.split(/(<strong>.*?<\/strong>)/g);
+        let xOffset = margin;
 
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text("Classe", pageWidth - 45, 50);
-      doc.setFontSize(24);
-      doc.setFont("helvetica", "bold");
-      doc.text(classe, pageWidth - 40, 58);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("Niveau sanitaire", pageWidth - 52, 63);
-
-      const contenu = replaceVariables(contenuLegal);
-      const lines = doc.splitTextToSize(contenu, pageWidth - 40);
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      let yPosition = 75;
-
-      lines.forEach((line: string) => {
-        if (yPosition > pageHeight - 30) {
-          doc.addPage();
-          yPosition = 20;
+        for (const part of parts) {
+          if (part.startsWith("<strong>")) {
+            pdf.setFont("helvetica", "bold");
+            const text = part.replace(/<\/?strong>/g, "");
+            pdf.text(text, xOffset, y);
+            xOffset += pdf.getTextWidth(text);
+          } else if (part) {
+            pdf.setFont("helvetica", "normal");
+            const wrappedLines = pdf.splitTextToSize(part, contentWidth - (xOffset - margin));
+            pdf.text(wrappedLines[0] || "", xOffset, y);
+            
+            // Lignes suivantes si wrap
+            for (let i = 1; i < wrappedLines.length; i++) {
+              y += 5;
+              pdf.text(wrappedLines[i], margin, y);
+            }
+          }
         }
-        doc.text(line, 20, yPosition);
-        yPosition += 6;
-      });
+        
+        y += 5;
+      }
 
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, "_blank");
+      // Disclaimer en bas (petit, gris, centré)
+      pdf.setFontSize(7);
+      pdf.setTextColor(120, 120, 120);
+      pdf.setFont("helvetica", "normal");
+      const disclaimer = "Ce document est la propriété de l'Agence Gabonaise de Sécurité Alimentaire. Il ne peut être consulté ou dupliqué sans autorisation.";
+      const disclaimerWidth = pdf.getTextWidth(disclaimer);
+      pdf.text(disclaimer, (pageWidth - disclaimerWidth) / 2, pageHeight - 10);
 
-      toast({ title: "PDF généré avec succès", description: "Le document s'ouvre dans un nouvel onglet" });
+      pdf.save(`Agrement_Sanitaire_${numeroAgrement || "Document"}.pdf`);
+      toast({ title: "PDF généré avec succès" });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur génération PDF", description: error.message });
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
     }
   }
 
