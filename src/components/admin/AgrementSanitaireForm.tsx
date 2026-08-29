@@ -227,16 +227,63 @@ Le Directeur Général de l'AGASA`);
       const contentWidth = pageWidth - 2 * margin;
       let y = margin;
 
-      // En-tête avec logos (réduits)
+      // En-tête avec logos
       if (logoAgasa) {
         const logoImg = await loadImage(logoAgasa);
-        pdf.addImage(logoImg, "PNG", margin, y, 20, 20);
+        pdf.addImage(logoImg, "PNG", margin, y, 30, 30);
       }
 
       if (sceauRepublique) {
         const sceauImg = await loadImage(sceauRepublique);
-        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 20, y, 20, 20);
+        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 30, y, 30, 30);
       }
+
+      // Titre centré "MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION"
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      const titre = "MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION";
+      const titreWidth = pdf.getTextWidth(titre);
+      pdf.text(titre, (pageWidth - titreWidth) / 2, y + 15);
+
+      y += 35;
+
+      // Ligne horizontale
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, y, pageWidth - margin, y);
+
+      y += 10;
+
+      // Titre "AGRÉMENT SANITAIRE" centré
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      const agrementTitle = "AGRÉMENT SANITAIRE";
+      const agrementTitleWidth = pdf.getTextWidth(agrementTitle);
+      pdf.text(agrementTitle, (pageWidth - agrementTitleWidth) / 2, y);
+
+      // Catégorie à gauche
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Catégorie", margin + 10, y + 5);
+      pdf.setFontSize(18);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(categorie, margin + 15, y + 12);
+
+      // Classe à droite
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      const classeLabel = "Classe";
+      const classeLabelWidth = pdf.getTextWidth(classeLabel);
+      pdf.text(classeLabel, pageWidth - margin - 20, y + 5);
+      pdf.setFontSize(18);
+      pdf.setFont("helvetica", "bold");
+      const classeWidth = pdf.getTextWidth(classe);
+      pdf.text(classe, pageWidth - margin - 20 + (classeLabelWidth - classeWidth) / 2, y + 12);
+      
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Niveau sanitaire", pageWidth - margin - 25, y + 18);
 
       y += 25;
 
@@ -244,14 +291,13 @@ Le Directeur Général de l'AGASA`);
       const processedContent = replaceVariables(contenuLegal);
       const lines = processedContent.split("\n");
 
-      pdf.setFontSize(8.5);
+      pdf.setFontSize(10);
       pdf.setTextColor(0, 0, 0);
-      const lineHeight = 4.2;
+      const lineHeight = 5;
       
       for (const line of lines) {
-        if (y > pageHeight - 18) break; // Arrêter si on dépasse
+        if (y > pageHeight - 20) break;
 
-        // Parser HTML simple pour gras
         const parts = line.split(/(<strong>.*?<\/strong>)/g).filter(p => p);
         
         if (parts.length === 0 || line.trim() === "") {
@@ -260,62 +306,34 @@ Le Directeur Général de l'AGASA`);
         }
 
         let xOffset = margin;
-        const lineFragments: Array<{text: string, bold: boolean}> = [];
         
-        // Construire les fragments de texte avec leur style
         for (const part of parts) {
           if (part.startsWith("<strong>")) {
+            pdf.setFont("helvetica", "bold");
             const text = part.replace(/<\/?strong>/g, "");
-            lineFragments.push({ text, bold: true });
+            const textWidth = pdf.getTextWidth(text);
+            const remainingWidth = contentWidth - (xOffset - margin);
+            
+            if (textWidth > remainingWidth && xOffset > margin) {
+              y += lineHeight;
+              xOffset = margin;
+              if (y > pageHeight - 20) break;
+            }
+            
+            pdf.text(text, xOffset, y);
+            xOffset += textWidth;
           } else if (part.trim()) {
-            lineFragments.push({ text: part, bold: false });
-          }
-        }
-
-        // Rendre la ligne avec les bons styles
-        for (const fragment of lineFragments) {
-          pdf.setFont("helvetica", fragment.bold ? "bold" : "normal");
-          
-          // Calculer si le texte tient sur la ligne actuelle
-          const textWidth = pdf.getTextWidth(fragment.text);
-          const remainingWidth = contentWidth - (xOffset - margin);
-          
-          if (textWidth > remainingWidth && xOffset > margin) {
-            // Passer à la ligne suivante
-            y += lineHeight;
-            xOffset = margin;
+            pdf.setFont("helvetica", "normal");
+            const textWidth = pdf.getTextWidth(part);
+            const remainingWidth = contentWidth - (xOffset - margin);
             
-            // Vérifier qu'on ne dépasse pas la page
-            if (y > pageHeight - 18) break;
-          }
-          
-          // Si le texte est trop long même pour une ligne complète, le découper
-          if (textWidth > contentWidth) {
-            const words = fragment.text.split(" ");
-            let currentLine = "";
-            
-            for (const word of words) {
-              const testLine = currentLine ? `${currentLine} ${word}` : word;
-              const testWidth = pdf.getTextWidth(testLine);
-              
-              if (testWidth > remainingWidth && currentLine) {
-                pdf.text(currentLine, xOffset, y);
-                y += lineHeight;
-                xOffset = margin;
-                currentLine = word;
-                
-                if (y > pageHeight - 18) break;
-              } else {
-                currentLine = testLine;
-              }
+            if (textWidth > remainingWidth && xOffset > margin) {
+              y += lineHeight;
+              xOffset = margin;
+              if (y > pageHeight - 20) break;
             }
             
-            if (currentLine) {
-              pdf.text(currentLine, xOffset, y);
-              xOffset += pdf.getTextWidth(currentLine);
-            }
-          } else {
-            pdf.text(fragment.text, xOffset, y);
+            pdf.text(part, xOffset, y);
             xOffset += textWidth;
           }
         }
@@ -324,7 +342,7 @@ Le Directeur Général de l'AGASA`);
       }
 
       // Disclaimer en bas (petit, gris, centré)
-      pdf.setFontSize(6.5);
+      pdf.setFontSize(7);
       pdf.setTextColor(130, 130, 130);
       pdf.setFont("helvetica", "normal");
       const disclaimer = "Ce document est la propriété de l'Agence Gabonaise de Sécurité Alimentaire. Il ne peut être consulté ou dupliqué sans autorisation.";
