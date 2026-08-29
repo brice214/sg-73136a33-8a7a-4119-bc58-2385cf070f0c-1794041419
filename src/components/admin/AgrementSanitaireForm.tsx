@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Upload, Settings } from "lucide-react";
+import { FileText, Upload, Settings, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,10 +60,12 @@ Le Directeur Général de l'AGASA`);
   const [sceauRepublique, setSceauRepublique] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSceau, setUploadingSceau] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     loadLogos();
+    loadTemplate();
   }, []);
 
   if (!mounted) {
@@ -99,6 +101,54 @@ Le Directeur Général de l'AGASA`);
       }
     } catch (error: any) {
       console.error("Erreur chargement logos:", error);
+    }
+  }
+
+  async function loadTemplate() {
+    try {
+      const { data, error } = await supabase
+        .from("document_templates")
+        .select("content")
+        .eq("id", "agrement_sanitaire")
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data && data.content) {
+        setContenuLegal(data.content);
+      }
+    } catch (error: any) {
+      console.error("Erreur chargement modèle:", error);
+    }
+  }
+
+  async function saveTemplate() {
+    if (!contenuLegal.trim()) {
+      toast({ variant: "destructive", title: "Erreur", description: "Le contenu légal ne peut pas être vide" });
+      return;
+    }
+
+    try {
+      setSavingTemplate(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Session expirée");
+
+      const { error } = await supabase.from("document_templates").upsert({
+        id: "agrement_sanitaire",
+        type: "agrement_sanitaire",
+        content: contenuLegal,
+        updated_by: session.user.id,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Modèle enregistré avec succès", description: "Le modèle de document a été sauvegardé" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
+    } finally {
+      setSavingTemplate(false);
     }
   }
 
@@ -455,10 +505,16 @@ Le Directeur Général de l'AGASA`);
 
           <Card>
             <CardContent className="pt-6">
-              <Button onClick={generatePDF} size="lg" className="w-full">
-                <FileText className="h-5 w-5 mr-2" />
-                Générer le PDF (paysage)
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={saveTemplate} variant="outline" size="lg" className="flex-1" disabled={savingTemplate}>
+                  <Save className="h-5 w-5 mr-2" />
+                  {savingTemplate ? "Enregistrement..." : "Enregistrer le modèle"}
+                </Button>
+                <Button onClick={generatePDF} size="lg" className="flex-1">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Générer le PDF
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
