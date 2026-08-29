@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { SEO } from "@/components/SEO";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Activity, AlertCircle, Crown, TrendingUp, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { SEO } from "@/components/ui/seo";
 
 type Metrics = {
   citizens: {
