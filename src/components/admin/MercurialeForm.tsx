@@ -14,15 +14,15 @@ type MercurialeProduct = {
   id: number;
   product: string;
   unit: string;
-  group_name: string;
-  category: string;
-  subcategory: string;
   price_wholesale: number;
   price_semi: number;
   price_retail: number;
   group_id: number | null;
   category_id: number | null;
   subcategory_id: number | null;
+  mercuriale_groups: { name: string } | null;
+  mercuriale_categories: { name: string } | null;
+  mercuriale_subcategories: { name: string } | null;
 };
 
 type Group = {
@@ -78,7 +78,16 @@ export default function MercurialeForm() {
   }
 
   async function loadProducts() {
-    const { data, error } = await supabase.from("mercuriale").select("*").order("product");
+    const { data, error } = await supabase
+      .from("mercuriale")
+      .select(`
+        *,
+        mercuriale_groups(name),
+        mercuriale_categories(name),
+        mercuriale_subcategories(name)
+      `)
+      .order("product");
+    
     if (error) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
       return;
@@ -140,19 +149,12 @@ export default function MercurialeForm() {
       return;
     }
 
-    const group = groups.find((g) => g.id === formGroupId);
-    const category = categories.find((c) => c.id === formCategoryId);
-    const subcategory = subcategories.find((s) => s.id === formSubcategoryId);
-
     const payload = {
       product: formProduct.trim(),
       unit: formUnit,
       group_id: formGroupId,
       category_id: formCategoryId,
       subcategory_id: formSubcategoryId,
-      group_name: group?.name || "",
-      category: category?.name || "",
-      subcategory: subcategory?.name || "",
       price_wholesale: Number(formPriceWholesale) || 0,
       price_semi: Number(formPriceSemi) || 0,
       price_retail: Number(formPriceRetail) || 0,
@@ -283,9 +285,9 @@ export default function MercurialeForm() {
                     <TableCell className="font-medium">{product.product}</TableCell>
                     <TableCell className="text-muted-foreground">{product.unit}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {product.group_name} → {product.category}
+                      {product.mercuriale_groups?.name || "—"} → {product.mercuriale_categories?.name || "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{product.subcategory}</TableCell>
+                    <TableCell className="text-muted-foreground">{product.mercuriale_subcategories?.name || "—"}</TableCell>
                     <TableCell>{product.price_wholesale}</TableCell>
                     <TableCell>{product.price_semi}</TableCell>
                     <TableCell>{product.price_retail}</TableCell>
