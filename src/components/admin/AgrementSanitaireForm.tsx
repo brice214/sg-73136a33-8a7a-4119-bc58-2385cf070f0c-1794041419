@@ -240,7 +240,7 @@ Le Directeur Général de l'AGASA`);
         pdf.addImage(sceauImg, "PNG", pageWidth - margin - 30, y, 30, 30);
       }
 
-      y += 32;
+      y += 30;
 
       // Titre centré "MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION"
       pdf.setFontSize(12);
@@ -250,7 +250,7 @@ Le Directeur Général de l'AGASA`);
       const titreWidth = pdf.getTextWidth(titre);
       pdf.text(titre, (pageWidth - titreWidth) / 2, y);
 
-      y += 8;
+      y += 5;
 
       // Ligne horizontale
       pdf.setDrawColor(0, 0, 0);
@@ -372,7 +372,7 @@ Le Directeur Général de l'AGASA`);
       }
 
       // Espace pour signature/cachet
-      y += 20;
+      y += 40;
 
       // Disclaimer en bas (petit, gris, centré)
       pdf.setFontSize(7);
