@@ -119,7 +119,7 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
-      <SEO title="Dashboard - MISSU BALA Backoffice" />
+      <SEO title="Dashboard - MISSU BALA Backoffice" noIndex={true} />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-primary">Dashboard</h1>

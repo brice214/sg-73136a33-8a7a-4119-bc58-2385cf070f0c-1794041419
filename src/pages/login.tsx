@@ -34,6 +34,7 @@ export default function LoginPage() {
       <SEO
         title="Connexion - MISSU BALA Backoffice"
         description="Connexion administrateur au backoffice MISSU BALA"
+        noIndex={true}
       />
       <div 
         className="min-h-screen flex items-center justify-center p-4 relative"

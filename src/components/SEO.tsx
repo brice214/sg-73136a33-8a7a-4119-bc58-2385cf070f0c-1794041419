@@ -5,6 +5,7 @@ interface SEOProps {
   description?: string;
   image?: string;
   url?: string;
+  noIndex?: boolean;
 }
 
 // SEO elements that can be used in _document.tsx (returns JSX without Head wrapper)
@@ -13,12 +14,15 @@ export function SEOElements({
   description = "Backoffice",
   image = "/og-image.png",
   url,
+  noIndex = false,
 }: SEOProps) {
   return (
     <>
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="icon" href="/favicon.ico" />
+      
+      {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
       {/* Open Graph */}
       <meta property="og:title" content={title} />
@@ -43,12 +47,15 @@ export function SEO({
   description = "Welcome to my app",
   image = "/og-image.png",
   url,
+  noIndex = false,
 }: SEOProps) {
   return (
     <Head>
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="icon" href="/favicon.ico" />
+      
+      {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
       {/* Open Graph */}
       <meta property="og:title" content={title} />
