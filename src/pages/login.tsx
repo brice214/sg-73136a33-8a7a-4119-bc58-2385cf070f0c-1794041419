@@ -35,8 +35,20 @@ export default function LoginPage() {
         title="Connexion - MISSU BALA Backoffice"
         description="Connexion administrateur au backoffice MISSU BALA"
       />
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-primary/20">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 relative"
+        style={{
+          backgroundImage: "url('/missubala-connexion-background-image.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat"
+        }}
+      >
+        {/* Overlay sombre pour lisibilité */}
+        <div className="absolute inset-0 bg-black/50" />
+        
+        {/* Contenu */}
+        <Card className="w-full max-w-md border-primary/20 relative z-10 backdrop-blur-sm bg-background/95 shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <Lock className="h-8 w-8 text-primary" />
