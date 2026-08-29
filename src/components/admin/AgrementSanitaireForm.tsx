@@ -208,6 +208,16 @@ Le Directeur Général de l'AGASA`);
       .replace(/\[DATE\]/g, `<strong>${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-")}</strong>`);
   }
 
+  function loadImage(url: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   async function generatePDF() {
     try {
       const pdf = new jsPDF({ unit: "mm", format: "a4" });
@@ -220,58 +230,75 @@ Le Directeur Général de l'AGASA`);
       // En-tête avec logos
       if (logoAgasa) {
         const logoImg = await loadImage(logoAgasa);
-        pdf.addImage(logoImg, "PNG", margin, y, 30, 30);
+        pdf.addImage(logoImg, "PNG", margin, y, 25, 25);
       }
 
       if (sceauRepublique) {
         const sceauImg = await loadImage(sceauRepublique);
-        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 30, y, 30, 30);
+        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 25, y, 25, 25);
       }
 
-      y += 35;
+      y += 30;
 
       // Contenu légal avec parsing HTML pour gras
       const processedContent = replaceVariables(contenuLegal);
       const lines = processedContent.split("\n");
 
-      pdf.setFontSize(9.5);
+      pdf.setFontSize(9);
+      const lineHeight = 4.5;
       
       for (const line of lines) {
-        if (y > pageHeight - 25) break; // Arrêter si on dépasse
+        if (y > pageHeight - 20) break; // Arrêter si on dépasse
 
         // Parser HTML simple pour gras
-        const parts = line.split(/(<strong>.*?<\/strong>)/g);
-        let xOffset = margin;
+        const parts = line.split(/(<strong>.*?<\/strong>)/g).filter(p => p);
+        
+        if (parts.length === 0 || line.trim() === "") {
+          y += lineHeight;
+          continue;
+        }
 
+        let xOffset = margin;
+        const lineFragments: Array<{text: string, bold: boolean}> = [];
+        
+        // Construire les fragments de texte avec leur style
         for (const part of parts) {
           if (part.startsWith("<strong>")) {
-            pdf.setFont("helvetica", "bold");
             const text = part.replace(/<\/?strong>/g, "");
-            pdf.text(text, xOffset, y);
-            xOffset += pdf.getTextWidth(text);
-          } else if (part) {
-            pdf.setFont("helvetica", "normal");
-            const wrappedLines = pdf.splitTextToSize(part, contentWidth - (xOffset - margin));
-            pdf.text(wrappedLines[0] || "", xOffset, y);
-            
-            // Lignes suivantes si wrap
-            for (let i = 1; i < wrappedLines.length; i++) {
-              y += 5;
-              pdf.text(wrappedLines[i], margin, y);
-            }
+            lineFragments.push({ text, bold: true });
+          } else if (part.trim()) {
+            lineFragments.push({ text: part, bold: false });
           }
         }
+
+        // Rendre la ligne avec les bons styles
+        for (const fragment of lineFragments) {
+          pdf.setFont("helvetica", fragment.bold ? "bold" : "normal");
+          
+          // Wrap si nécessaire
+          const remainingWidth = contentWidth - (xOffset - margin);
+          const textWidth = pdf.getTextWidth(fragment.text);
+          
+          if (textWidth > remainingWidth && xOffset > margin) {
+            // Wrap à la ligne suivante
+            y += lineHeight;
+            xOffset = margin;
+          }
+          
+          pdf.text(fragment.text, xOffset, y);
+          xOffset += textWidth;
+        }
         
-        y += 5;
+        y += lineHeight;
       }
 
       // Disclaimer en bas (petit, gris, centré)
-      pdf.setFontSize(7);
-      pdf.setTextColor(120, 120, 120);
+      pdf.setFontSize(6.5);
+      pdf.setTextColor(130, 130, 130);
       pdf.setFont("helvetica", "normal");
       const disclaimer = "Ce document est la propriété de l'Agence Gabonaise de Sécurité Alimentaire. Il ne peut être consulté ou dupliqué sans autorisation.";
       const disclaimerWidth = pdf.getTextWidth(disclaimer);
-      pdf.text(disclaimer, (pageWidth - disclaimerWidth) / 2, pageHeight - 10);
+      pdf.text(disclaimer, (pageWidth - disclaimerWidth) / 2, pageHeight - 8);
 
       pdf.save(`Agrement_Sanitaire_${numeroAgrement || "Document"}.pdf`);
       toast({ title: "PDF généré avec succès" });
