@@ -238,7 +238,7 @@ Le Directeur Général de l'AGASA`);
         pdf.addImage(sceauImg, "PNG", pageWidth - margin - 30, y, 30, 30);
       }
 
-      // Titre centré "MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION"
+      // Titre centré "MINISTÈRE DE L'AGRICULTURE ET DE L'ALIMENTATION" (APRÈS les logos)
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(0, 0, 0);
@@ -320,8 +320,21 @@ Le Directeur Général de l'AGASA`);
               if (y > pageHeight - 20) break;
             }
             
-            pdf.text(text, xOffset, y);
-            xOffset += textWidth;
+            // Si le texte dépasse même sur une nouvelle ligne, le découper
+            if (textWidth > contentWidth) {
+              const wrappedLines = pdf.splitTextToSize(text, contentWidth);
+              for (let i = 0; i < wrappedLines.length; i++) {
+                pdf.text(wrappedLines[i], xOffset, y);
+                if (i < wrappedLines.length - 1) {
+                  y += lineHeight;
+                  xOffset = margin;
+                }
+              }
+              xOffset = margin + pdf.getTextWidth(wrappedLines[wrappedLines.length - 1]);
+            } else {
+              pdf.text(text, xOffset, y);
+              xOffset += textWidth;
+            }
           } else if (part.trim()) {
             pdf.setFont("helvetica", "normal");
             const textWidth = pdf.getTextWidth(part);
@@ -333,8 +346,21 @@ Le Directeur Général de l'AGASA`);
               if (y > pageHeight - 20) break;
             }
             
-            pdf.text(part, xOffset, y);
-            xOffset += textWidth;
+            // Si le texte dépasse même sur une nouvelle ligne, le découper
+            if (textWidth > contentWidth) {
+              const wrappedLines = pdf.splitTextToSize(part, contentWidth);
+              for (let i = 0; i < wrappedLines.length; i++) {
+                pdf.text(wrappedLines[i], xOffset, y);
+                if (i < wrappedLines.length - 1) {
+                  y += lineHeight;
+                  xOffset = margin;
+                }
+              }
+              xOffset = margin + pdf.getTextWidth(wrappedLines[wrappedLines.length - 1]);
+            } else {
+              pdf.text(part, xOffset, y);
+              xOffset += textWidth;
+            }
           }
         }
         
