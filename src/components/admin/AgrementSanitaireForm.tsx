@@ -31,6 +31,7 @@ export default function AgrementSanitaireForm() {
   const [categorie, setCategorie] = useState<"1" | "2" | "3">("1");
   const [classe, setClasse] = useState<"A" | "B" | "C">("A");
   const [dateInspection, setDateInspection] = useState("");
+  const [dateDelivrance, setDateDelivrance] = useState("");
 
   const [contenuLegal, setContenuLegal] = useState(`Le Directeur Général de l'Agence Gabonaise de Sécurité Alimentaire,
 
@@ -52,7 +53,7 @@ Activité(s) autorisée(s) : {{activites}}
 N° d'agrément : {{numero_agrement}}
 Validité : {{validite}}
 
-Fait à Libreville, le [DATE]
+Fait à Libreville le, {{date_delivrance}}
 
 Le Directeur Général de l'AGASA`);
 
@@ -205,6 +206,7 @@ Le Directeur Général de l'AGASA`);
       .replace(/\{\{categorie\}\}/g, `<strong>${categorie}</strong>`)
       .replace(/\{\{classe\}\}/g, `<strong>${classe}</strong>`)
       .replace(/\{\{date_inspection\}\}/g, `<strong>${dateInspection ? new Date(dateInspection).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-") : ""}</strong>`)
+      .replace(/\{\{date_delivrance\}\}/g, `<strong>${dateDelivrance ? new Date(dateDelivrance).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-") : ""}</strong>`)
       .replace(/\[DATE\]/g, `<strong>${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-")}</strong>`);
   }
 
@@ -368,6 +370,9 @@ Le Directeur Général de l'AGASA`);
         
         y += lineHeight;
       }
+
+      // Espace pour signature/cachet
+      y += 20;
 
       // Disclaimer en bas (petit, gris, centré)
       pdf.setFontSize(7);
@@ -581,6 +586,16 @@ Le Directeur Général de l'AGASA`);
                     onChange={(e) => setDateInspection(e.target.value)}
                   />
                 </div>
+
+                <div>
+                  <Label htmlFor="date_delivrance">Date de délivrance</Label>
+                  <Input
+                    id="date_delivrance"
+                    type="date"
+                    value={dateDelivrance}
+                    onChange={(e) => setDateDelivrance(e.target.value)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -592,7 +607,7 @@ Le Directeur Général de l'AGASA`);
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  {`Variables disponibles (15): {{etablissement}}, {{abreviation}}, {{adresse_bp}}, {{telephone}}, {{email}}, {{objet_social}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}, {{date_inspection}}`}
+                  {`Variables disponibles (16): {{etablissement}}, {{abreviation}}, {{adresse_bp}}, {{telephone}}, {{email}}, {{objet_social}}, {{ville}}, {{arrondissement}}, {{quartier}}, {{activites}}, {{numero_agrement}}, {{validite}}, {{categorie}}, {{classe}}, {{date_inspection}}, {{date_delivrance}}`}
                 </p>
                 <Textarea
                   value={contenuLegal}
