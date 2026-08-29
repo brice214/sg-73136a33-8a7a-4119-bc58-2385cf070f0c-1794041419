@@ -227,28 +227,29 @@ Le Directeur Général de l'AGASA`);
       const contentWidth = pageWidth - 2 * margin;
       let y = margin;
 
-      // En-tête avec logos
+      // En-tête avec logos (réduits)
       if (logoAgasa) {
         const logoImg = await loadImage(logoAgasa);
-        pdf.addImage(logoImg, "PNG", margin, y, 25, 25);
+        pdf.addImage(logoImg, "PNG", margin, y, 20, 20);
       }
 
       if (sceauRepublique) {
         const sceauImg = await loadImage(sceauRepublique);
-        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 25, y, 25, 25);
+        pdf.addImage(sceauImg, "PNG", pageWidth - margin - 20, y, 20, 20);
       }
 
-      y += 30;
+      y += 25;
 
       // Contenu légal avec parsing HTML pour gras
       const processedContent = replaceVariables(contenuLegal);
       const lines = processedContent.split("\n");
 
-      pdf.setFontSize(9);
-      const lineHeight = 4.5;
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(0, 0, 0);
+      const lineHeight = 4.2;
       
       for (const line of lines) {
-        if (y > pageHeight - 20) break; // Arrêter si on dépasse
+        if (y > pageHeight - 18) break; // Arrêter si on dépasse
 
         // Parser HTML simple pour gras
         const parts = line.split(/(<strong>.*?<\/strong>)/g).filter(p => p);
@@ -275,18 +276,48 @@ Le Directeur Général de l'AGASA`);
         for (const fragment of lineFragments) {
           pdf.setFont("helvetica", fragment.bold ? "bold" : "normal");
           
-          // Wrap si nécessaire
-          const remainingWidth = contentWidth - (xOffset - margin);
+          // Calculer si le texte tient sur la ligne actuelle
           const textWidth = pdf.getTextWidth(fragment.text);
+          const remainingWidth = contentWidth - (xOffset - margin);
           
           if (textWidth > remainingWidth && xOffset > margin) {
-            // Wrap à la ligne suivante
+            // Passer à la ligne suivante
             y += lineHeight;
             xOffset = margin;
+            
+            // Vérifier qu'on ne dépasse pas la page
+            if (y > pageHeight - 18) break;
           }
           
-          pdf.text(fragment.text, xOffset, y);
-          xOffset += textWidth;
+          // Si le texte est trop long même pour une ligne complète, le découper
+          if (textWidth > contentWidth) {
+            const words = fragment.text.split(" ");
+            let currentLine = "";
+            
+            for (const word of words) {
+              const testLine = currentLine ? `${currentLine} ${word}` : word;
+              const testWidth = pdf.getTextWidth(testLine);
+              
+              if (testWidth > remainingWidth && currentLine) {
+                pdf.text(currentLine, xOffset, y);
+                y += lineHeight;
+                xOffset = margin;
+                currentLine = word;
+                
+                if (y > pageHeight - 18) break;
+              } else {
+                currentLine = testLine;
+              }
+            }
+            
+            if (currentLine) {
+              pdf.text(currentLine, xOffset, y);
+              xOffset += pdf.getTextWidth(currentLine);
+            }
+          } else {
+            pdf.text(fragment.text, xOffset, y);
+            xOffset += textWidth;
+          }
         }
         
         y += lineHeight;
