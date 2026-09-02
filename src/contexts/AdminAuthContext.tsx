@@ -24,10 +24,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // Routes publiques qui n'exigent pas d'authentification
+    const publicRoutes = ["/login", "/politique-confidentialite"];
+
     // Écouter les changements
     const { data: { subscription } } = adminAuthService.onAuthStateChange((s) => {
       setSession(s);
-      if (!s && router.pathname !== "/login") {
+      if (!s && !publicRoutes.includes(router.pathname)) {
         router.push("/login");
       }
     });
