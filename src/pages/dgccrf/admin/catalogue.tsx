@@ -1,5 +1,5 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { CatalogueForm } from "@/components/admin/CatalogueForm";
+import CatalogueForm from "@/components/admin/CatalogueForm";
 import { SEO } from "@/components/SEO";
 
 export default function CataloguePage() {

@@ -1,5 +1,5 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { MercurialeForm } from "@/components/admin/MercurialeForm";
+import MercurialeForm from "@/components/admin/MercurialeForm";
 import { SEO } from "@/components/SEO";
 
 export default function MercurialePage() {
